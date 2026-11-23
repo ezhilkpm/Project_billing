@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChefPulse TV Signage • Live Token & Ads Screen</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.03); }
+    }
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .animate-marquee {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 25s linear infinite;
+    }
+    .animate-marquee:hover {
+      animation-play-state: paused;
+    }
+    .token-ready-card {
+      animation: pulse-slow 1.8s infinite ease-in-out;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-white font-sans overflow-hidden select-none h-screen w-screen flex flex-col justify-between">
+
+  <!-- TOP BRANDING & CLOCK HEADER -->
+  <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-3.5 flex items-center justify-between shadow-2xl shrink-0 z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-xl font-black text-slate-950 shadow-lg">
+        🍽️
+      </div>
+      <div>
+        <h1 class="text-lg md:text-xl font-black tracking-wide text-white uppercase" id="tv-rest-name">ChefPulse Restaurant</h1>
+        <p class="text-[11px] text-amber-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE DIGITAL SIGNAGE & TOKEN BOARD
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Controls: Digital Clock & Fullscreen -->
+    <div class="flex items-center gap-4">
+      <div class="text-right font-mono">
+        <div class="text-lg md:text-xl font-black text-amber-300" id="tv-clock">12:00:00 PM</div>
+        <div class="text-[11px] text-slate-400 font-sans" id="tv-date">Sunday, 22 Nov 2026</div>
+      </div>
+      <button onclick="toggleFullscreen()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-1 shadow">
+        <span>⛶</span> Fullscreen
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN BODY: SPLIT TOKEN BOARD & PROMO CAROUSEL -->
+  <main class="flex-1 grid grid-cols-12 gap-5 p-5 overflow-hidden">
+    
+    <!-- LEFT COLUMN (38%): LIVE TOKEN PICKUP BOARD -->
+    <section class="col-span-12 lg:col-span-5 bg-slate-900/80 border border-slate-800/80 rounded-3xl p-5 flex flex-col justify-between shadow-2xl backdrop-blur-md">
+      
+      <!-- READY TOKENS SECTION -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <h2 class="text-base md:text-lg font-black text-emerald-400 tracking-wider uppercase">
+              ✅ READY FOR PICKUP
+            </h2>
+          </div>
+          <span class="text-xs font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-bold">
+            Counter 1
+          </span>
+        </div>
+
+        <div id="tv-ready-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-[36vh] overflow-y-auto hide-scrollbar p-1">
+          <div class="p-6 col-span-full text-center text-slate-500 text-xs font-mono">No orders currently waiting for pickup</div>
+        </div>
+      </div>
+
+      <!-- PREPARING TOKENS SECTION -->
+      <div class="space-y-3 pt-3 border-t border-slate-800">
+        <div class="flex items-center justify-between border-b border-amber-500/30 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+            <h3 class="text-sm md:text-base font-black text-amber-400 tracking-wider uppercase">
+              🔥 NOW PREPARING
+            </h3>
+          </div>
+          <span class="text-[11px] text-slate-400 font-mono font-medium">In Kitchens</span>
+        </div>
+
+        <div id="tv-preparing-grid" class="flex flex-wrap gap-2 max-h-[22vh] overflow-y-auto hide-scrollbar p-1">
+          <div class="p-4 w-full text-center text-slate-500 text-xs font-mono">Kitchens are all caught up</div>
+        </div>
+      </div>
+
+      <!-- Counter Pickup Note -->
+      <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-2xl flex items-center gap-2.5 text-xs text-slate-300">
+        <span class="text-lg">📢</span>
+        <span>Please present your printed <strong>Token Slip</strong> at the handover counter when your number flashes green.</span>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN (62%): HD PROMOTIONAL SPECIALS & ADS REEL -->
+    <section class="col-span-12 lg:col-span-7 bg-slate-900/60 border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl relative flex flex-col justify-between">
+      
+      <!-- Slide Content Container -->
+      <div class="relative w-full h-full overflow-hidden" id="tv-slide-container">
+        <!-- Background HD Dish Image -->
+        <img id="tv-promo-img" src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=1200&auto=format&fit=crop&q=80" 
+             alt="Special Dish" class="w-full h-full object-cover brightness-[0.70] transition-opacity duration-700 ease-in-out">
+
+        <!-- Dark Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+
+        <!-- Top Badge -->
+        <div class="absolute top-5 left-5 flex items-center gap-2">
+          <span class="px-3 py-1 bg-amber-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-widest shadow-xl">
+            CHEF'S SPECIAL OF THE DAY
+          </span>
+          <span class="px-2.5 py-1 bg-black/60 backdrop-blur-md text-amber-300 font-bold rounded-xl text-xs border border-white/10" id="tv-promo-badge">
+            TODAY'S HIGHLIGHT
+          </span>
+        </div>
+
+        <!-- Slide Title, Tagline & Price Card (Floating at bottom-left) -->
+        <div class="absolute bottom-6 left-6 right-6 space-y-2.5 bg-slate-950/80 backdrop-blur-md p-6 rounded-3xl border border-slate-800 shadow-2xl">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight" id="tv-promo-title">
+              Special Chicken Dum Biryani
+            </h2>
+            <div class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black rounded-2xl text-lg md:text-xl shadow-lg shrink-0" id="tv-promo-price">
+              ₹320
+            </div>
+          </div>
+          <p class="text-sm md:text-base text-slate-300 font-medium leading-relaxed" id="tv-promo-tagline">
+            Slow-cooked with premium Basmati, saffron, fresh mint & secret royal kitchen spices. Served with raita.
+          </p>
+
+          <!-- Slide Dots Indicator -->
+          <div class="flex items-center gap-1.5 pt-2" id="tv-promo-dots">
+            <!-- Dots injected via JS -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- BOTTOM TICKER ANNOUNCEMENT MARQUEE -->
+  <footer class="bg-amber-500 text-slate-950 font-bold py-2.5 px-4 overflow-hidden shadow-2xl shrink-0 z-20 flex items-center">
+    <div class="px-3 py-0.5 bg-slate-950 text-amber-400 rounded-lg text-xs font-black uppercase tracking-widest shrink-0 mr-3 shadow">
+      OFFERS & ANNOUNCEMENTS
+    </div>
+    <div class="overflow-hidden w-full text-xs md:text-sm font-black">
+      <div class="animate-marquee font-mono uppercase" id="tv-ticker-marquee">
+        🎉 Welcome to ChefPulse! • Try Our Special Dum Biryani & Crispy Starters • Happy Hours 4PM-7PM • Fast Online Delivery on Swiggy & Zomato! • Free High-Speed Customer Wi-Fi Available
+      </div>
+    </div>
+  </footer>
+
+  <!-- Web Audio Synthesizer & Voice Announcement Script -->
+  <script>
+    let activePromotions = [];
+    let currentSlideIdx = 0;
+    let slideTimer = null;
+    let knownReadyTokens = new Set();
+    let ws = null;
+
+    // Web Audio Synthesizer for Token Ready Chime
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playDingDong() {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+
+        // Note 1: High bell chime
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.frequency.setValueAtTime(880, now); // A5
+        gain1.gain.setValueAtTime(0.2, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.6);
+
+        // Note 2: Warm lower chime
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.frequency.setValueAtTime(587.33, now + 0.18); // D5
+        gain2.gain.setValueAtTime(0.25, now + 0.18);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.18);
+        osc2.stop(now + 0.9);
+      } catch (e) {
+        console.warn('Audio chime muted', e);
+      }
+    }
+
+    // Voice announcement (Text-to-Speech)
+    function announceToken(tokenNum) {
+      playDingDong();
+      if ('speechSynthesis' in window) {
+        setTimeout(() => {
+          try {
+            const msg = new SpeechSynthesisUtterance(`Token number ${tokenNum} is ready for pickup.`);
+            msg.rate = 0.95;
+            msg.pitch = 1.05;
+            window.speechSynthesis.speak(msg);
+          } catch(e) {}
+        }, 500);
+      }
+    }
+
+    // Digital Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('tv-clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('tv-date').innerText = now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Load Live Display Data
+    async function loadTVData() {
+      try {
+        const res = await fetch('/api/tv/display');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // 1. Restaurant Name & Ticker
+        if (data.restaurantName) document.getElementById('tv-rest-name').innerText = data.restaurantName;
+        if (data.tickerText) document.getElementById('tv-ticker-marquee').innerText = data.tickerText;
+
+        // Helper: Format Token or Table Label
+        function formatTokenLabel(tok) {
+          if (!tok) return '';
+          const s = String(tok);
+          if (/^\d+$/.test(s)) return `#${s}`;
+          if (s.startsWith('TOKEN-')) return `#${s.replace('TOKEN-', '')}`;
+          if (s.startsWith('ONLINE-SWIGGY') || s.toLowerCase().includes('swiggy')) return `🛵 SWIGGY`;
+          if (s.startsWith('ONLINE-ZOMATO') || s.toLowerCase().includes('zomato')) return `🛵 ZOMATO`;
+          return `${s}`;
+        }
+
+        // 2. Ready Tokens & Table Orders
+        const readyContainer = document.getElementById('tv-ready-grid');
+        const readyTokens = data.readyTokens || [];
+        if (readyTokens.length === 0) {
+          readyContainer.innerHTML = '<div class="p-6 col-span-full text-center text-slate-500 text-xs font-mono">No orders currently waiting for pickup</div>';
+        } else {
+          readyContainer.innerHTML = readyTokens.map(tok => {
+            const label = formatTokenLabel(tok);
+            const isTable = String(tok).toLowerCase().includes('table') || String(tok).startsWith('T-');
+            const isOnline = String(tok).toLowerCase().includes('swiggy') || String(tok).toLowerCase().includes('zomato');
+            const subBadge = isTable ? 'TABLE ORDER' : (isOnline ? 'ONLINE AGGREGATOR' : 'PICKUP TOKEN');
+            const icon = isTable ? '🍽️' : (isOnline ? '🛵' : '🛍️');
+            return `
+              <div class="token-ready-card bg-emerald-500 text-slate-950 font-black rounded-2xl p-3 text-center shadow-lg shadow-emerald-500/20 border-2 border-emerald-300">
+                <span class="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-950">${icon} ${subBadge}</span>
+                <span class="text-xl sm:text-2xl font-mono leading-none block mt-1">${label}</span>
+              </div>
+            `;
+          }).join('');
+
+          // Detect new ready token to ring bell & announce!
+          readyTokens.forEach(tok => {
+            if (!knownReadyTokens.has(tok)) {
+              knownReadyTokens.add(tok);
+              announceToken(tok);
+            }
+          });
+        }
+
+        // Clean up known tokens no longer ready
+        const currentReadySet = new Set(readyTokens);
+        for (const t of knownReadyTokens) {
+          if (!currentReadySet.has(t)) knownReadyTokens.delete(t);
+        }
+
+        // 3. Preparing Tokens & Table Orders in Kitchens
+        const prepContainer = document.getElementById('tv-preparing-grid');
+        const prepTokens = data.preparingTokens || [];
+        if (prepTokens.length === 0) {
+          prepContainer.innerHTML = '<div class="p-4 w-full text-center text-slate-500 text-xs font-mono">Kitchens are all caught up</div>';
+        } else {
+          prepContainer.innerHTML = prepTokens.map(tok => {
+            const label = formatTokenLabel(tok);
+            const isTable = String(tok).toLowerCase().includes('table') || String(tok).startsWith('T-');
+            const isOnline = String(tok).toLowerCase().includes('swiggy') || String(tok).toLowerCase().includes('zomato');
+            return `
+              <span class="px-3 py-1.5 ${isTable ? 'bg-sky-500/20 border-sky-500/40 text-sky-300' : (isOnline ? 'bg-orange-500/20 border-orange-500/40 text-orange-300' : 'bg-amber-500/20 border-amber-500/40 text-amber-300')} border font-mono font-black text-sm rounded-xl flex items-center gap-1.5">
+                <span>${isTable ? '🍽️' : (isOnline ? '🛵' : '🛍️')}</span>
+                <span>${label}</span>
+              </span>
+            `;
+          }).join('');
+        }
+
+        // 4. Promotions / Ads Carousel
+        if (data.promotions && data.promotions.length > 0) {
+          activePromotions = data.promotions;
+          renderPromoSlide();
+          setupSlideInterval(data.slideInterval || 8);
+        }
+      } catch (e) {
+        console.error('TV data load error', e);
+      }
+    }
+
+    // Render Current Promo Slide
+    function renderPromoSlide() {
+      if (activePromotions.length === 0) return;
+      const slide = activePromotions[currentSlideIdx % activePromotions.length];
+
+      const img = document.getElementById('tv-promo-img');
+      img.style.opacity = '0.3';
+      setTimeout(() => {
+        img.src = slide.image_url || 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=1200&auto=format&fit=crop&q=80';
+        document.getElementById('tv-promo-title').innerText = slide.title || 'Chef Special';
+        document.getElementById('tv-promo-tagline').innerText = slide.tagline || 'Exquisite culinary delight crafted fresh.';
+        document.getElementById('tv-promo-price').innerText = slide.price_badge || '₹0';
+        img.style.opacity = '1';
+      }, 200);
+
+      // Render Dots
+      const dotsContainer = document.getElementById('tv-promo-dots');
+      dotsContainer.innerHTML = activePromotions.map((_, i) => `
+        <span class="h-2 rounded-full transition-all ${i === (currentSlideIdx % activePromotions.length) ? 'w-6 bg-amber-400' : 'w-2 bg-slate-700'}"></span>
+      `).join('');
+    }
+
+    function setupSlideInterval(seconds = 8) {
+      if (slideTimer) clearInterval(slideTimer);
+      slideTimer = setInterval(() => {
+        currentSlideIdx++;
+        renderPromoSlide();
+      }, seconds * 1000);
+    }
+
+    // Real-Time WebSocket Connection
+    function connectWS() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+      ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          const ev = msg.event || msg.type;
+          if (['TAKEAWAY_ORDER_CREATED', 'TAKEAWAY_STATUS_UPDATED', 'TAKEAWAY_ORDER_PAID', 'TV_UPDATED', 'SETTINGS_UPDATED', 'KOT_STATUS_UPDATED', 'KOT_UPDATED', 'KOT_ITEM_UPDATED', 'KOT_CREATED', 'TABLES_REFRESH', 'TABLE_UPDATED', 'BILL_SETTLED'].includes(ev)) {
+            loadTVData();
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectWS, 4000);
+      };
+    }
+
+    // Initial Start
+    connectWS();
+    loadTVData();
+    setInterval(loadTVData, 5000); // 5-sec fallback poll
+  </script>
+</body>
+</html>

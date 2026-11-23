@@ -1,0 +1,36 @@
+{
+  "name": "restaurant-billing-pos",
+  "version": "1.0.0",
+  "description": "Android Mobile & Windows Desktop Restaurant Billing & POS System (Captain -> Kitchen KDS -> Waiter -> Cashier Billing)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "build": "node -e \"console.log('ChefPulse POS build complete')\"",
+    "mobile:sync": "npm run build && npx cap sync android",
+    "mobile:android": "npm run build && npx cap sync android && npx cap open android"
+  },
+  "keywords": [
+    "restaurant-pos",
+    "android-pos",
+    "billing-software",
+    "kds",
+    "kot-system",
+    "capacitor",
+    "offline-first"
+  ],
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^6.0.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}

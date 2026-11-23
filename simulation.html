@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Android Mobile POS Simulator</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    input, textarea {
+      user-select: text;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-ring {
+      animation: pulse-ring 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-2 sm:p-4">
+
+  <!-- Outer Simulation Shell Card -->
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-2xl p-3 sm:p-5 shadow-lg max-w-4xl mx-auto">
+    
+    <!-- Simulator Top Toolbar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-3 mb-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+          <h2 class="text-base sm:text-lg font-bold tracking-tight text-[var(--foreground)]">
+            Android Mobile POS Simulator
+          </h2>
+          <span class="text-xs bg-amber-500/20 text-amber-400 font-semibold px-2 py-0.5 rounded-full border border-amber-500/30">
+            Interactive Model
+          </span>
+        </div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-0.5">
+          Real Restaurant Flow: Captain ➔ Kitchen KDS ➔ Waiter Serving ➔ Cashier Billing
+        </p>
+      </div>
+
+      <!-- Quick Simulator Controls -->
+      <div class="flex items-center gap-2">
+        <button onclick="runAutoTour()" id="btn-auto-tour" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5">
+          <span>⚡ 1-Click Guided Demo</span>
+        </button>
+        <button onclick="toggleSound()" id="sound-btn" class="px-2.5 py-1.5 bg-[var(--background)] hover:bg-slate-800 border border-[var(--border)] text-xs rounded-xl text-[var(--foreground)] font-medium flex items-center gap-1">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-label">Audio On</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Step Flow Indicator Bar -->
+    <div class="grid grid-cols-4 gap-1.5 mb-4 text-xs font-semibold">
+      <button onclick="switchRole('captain')" id="sim-step-1" class="py-2 px-1 rounded-xl text-center transition-all bg-amber-500 text-slate-950 font-bold shadow">
+        1. Captain Order
+      </button>
+      <button onclick="switchRole('kitchen')" id="sim-step-2" class="py-2 px-1 rounded-xl text-center transition-all bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] relative">
+        2. Kitchen KDS
+        <span id="sim-badge-kitchen" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-bold">0</span>
+      </button>
+      <button onclick="switchRole('server')" id="sim-step-3" class="py-2 px-1 rounded-xl text-center transition-all bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] relative">
+        3. Waiter Serving
+        <span id="sim-badge-server" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-slate-950 rounded-full text-xs flex items-center justify-center font-bold">0</span>
+      </button>
+      <button onclick="switchRole('billing')" id="sim-step-4" class="py-2 px-1 rounded-xl text-center transition-all bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">
+        4. Cashier Billing
+      </button>
+    </div>
+
+    <!-- Interactive Phone Container (Android Hardware Bezel) -->
+    <div class="flex justify-center">
+      <div class="relative w-full max-w-[390px] h-[670px] bg-slate-950 rounded-[44px] p-3 shadow-2xl border-4 border-slate-700/80 ring-1 ring-slate-800 flex flex-col overflow-hidden">
+        
+        <!-- Hardware Speaker & Camera Punch-Hole -->
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4.5 bg-slate-900 rounded-full flex items-center justify-center gap-2 z-40 border border-slate-800">
+          <div class="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-700"></div>
+          <div class="w-8 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- Android Status Bar -->
+        <div class="h-6 flex items-center justify-between px-5 pt-1 text-xs text-slate-400 font-mono tracking-tight shrink-0 select-none z-30">
+          <span id="sim-clock">18:55</span>
+          <div class="flex items-center space-x-1.5 text-xs">
+            <span class="text-emerald-400 font-semibold">5G</span>
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 3C7.5 3 3.7 4.9 1 8l11 13 11-13c-2.7-3.1-6.5-5-11-5z"/></svg>
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M17 4h-3V2h-4v2H7v18h10V4z"/></svg>
+          </div>
+        </div>
+
+        <!-- Phone App Bar -->
+        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-2.5 mt-1 border border-slate-800/80 flex items-center justify-between shrink-0 z-30">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center font-bold text-white text-xs shadow">
+              🍽️
+            </div>
+            <div>
+              <h1 class="text-xs font-bold text-white leading-tight flex items-center gap-1">
+                ChefPulse <span class="bg-amber-500/20 text-amber-300 font-semibold px-1 rounded text-[10px]">POS</span>
+              </h1>
+              <p class="text-[11px] text-slate-400" id="sim-appbar-sub">Floor Captain • TBL: None</p>
+            </div>
+          </div>
+
+          <!-- Active Table Badge -->
+          <div id="sim-active-table-badge" class="text-xs bg-slate-800 border border-slate-700 text-amber-300 px-2 py-0.5 rounded-lg font-mono">
+            Table: None
+          </div>
+        </div>
+
+        <!-- Phone Screen Dynamic View Body -->
+        <div class="flex-1 overflow-y-auto hide-scrollbar p-2 mt-2 space-y-3 relative rounded-2xl bg-slate-950 border border-slate-900" id="sim-screen-body">
+
+          <!-- ================= VIEW 1: CAPTAIN FLOW ================= -->
+          <div id="view-captain" class="space-y-3">
+            
+            <!-- Step 1A: Table Grid -->
+            <div id="captain-tables-block" class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Select Table</span>
+                <span class="text-xs text-emerald-400 font-medium">● Green = Available</span>
+              </div>
+
+              <!-- Zone Buttons -->
+              <div class="flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar text-xs">
+                <button onclick="setZone('all')" class="zone-tag active px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg shrink-0">All</button>
+                <button onclick="setZone('AC')" class="zone-tag px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg shrink-0">AC Hall</button>
+                <button onclick="setZone('Main')" class="zone-tag px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg shrink-0">Main Floor</button>
+                <button onclick="setZone('Rooftop')" class="zone-tag px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg shrink-0">Rooftop</button>
+              </div>
+
+              <!-- Tables -->
+              <div class="grid grid-cols-3 gap-2" id="sim-table-grid">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Step 1B: Menu & Food Ordering (Once Table is Tapped) -->
+            <div id="captain-menu-block" class="hidden space-y-2.5">
+              <!-- Header Bar for Active Table -->
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 flex items-center justify-between">
+                <div>
+                  <h3 class="text-xs font-bold text-white flex items-center gap-1.5" id="sim-menu-tbl-title">
+                    Table T-02 <span class="text-slate-400 font-normal">(4 Covers)</span>
+                  </h3>
+                  <span class="text-xs text-amber-400">Order Batch #KOT-<span id="kot-display-seq">101</span></span>
+                </div>
+                <button onclick="returnToTableSelect()" class="text-xs px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700">
+                  Switch TBL
+                </button>
+              </div>
+
+              <!-- Categories -->
+              <div class="flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar text-xs" id="sim-category-list">
+                <!-- Injected via JS -->
+              </div>
+
+              <!-- Menu Items List -->
+              <div class="space-y-1.5 pb-16" id="sim-menu-items">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= VIEW 2: KITCHEN KDS FLOW ================= -->
+          <div id="view-kitchen" class="hidden space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Kitchen Queue (KDS)</h3>
+                <p class="text-xs text-slate-500">Real-time tickets fired by Captains</p>
+              </div>
+              <span class="text-xs bg-slate-800 text-amber-400 font-mono px-2 py-0.5 rounded-lg border border-slate-700" id="sim-kds-counter">0 Active</span>
+            </div>
+
+            <div id="sim-kds-tickets" class="space-y-2.5 pb-6">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <!-- ================= VIEW 3: SERVER RUNNER FLOW ================= -->
+          <div id="view-server" class="hidden space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Food Ready for Pickup</h3>
+                <p class="text-xs text-slate-500">Hot food waiting at kitchen counter</p>
+              </div>
+              <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold" id="sim-server-counter">0 Ready</span>
+            </div>
+
+            <div id="sim-server-tickets" class="space-y-2.5 pb-6">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <!-- ================= VIEW 4: CASHIER BILLING FLOW ================= -->
+          <div id="view-billing" class="hidden space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Billing & Settlement</h3>
+                <p class="text-xs text-slate-500">Select table to generate invoice</p>
+              </div>
+            </div>
+
+            <!-- Table Buttons for Billing -->
+            <div class="grid grid-cols-3 gap-2" id="sim-billing-tables">
+              <!-- Injected via JS -->
+            </div>
+
+            <!-- Bill Detail Breakdown -->
+            <div id="sim-invoice-box" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-3 space-y-2.5 shadow-lg">
+              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <div>
+                  <h4 class="text-xs font-bold text-white" id="inv-table-name">Table T-02</h4>
+                  <span class="text-xs text-amber-400 font-mono" id="inv-order-code">#ORD-4091</span>
+                </div>
+                <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-medium">Consolidated Bill</span>
+              </div>
+
+              <!-- Lines -->
+              <div class="space-y-1 text-xs max-h-36 overflow-y-auto hide-scrollbar divide-y divide-slate-800/60" id="inv-lines">
+                <!-- Injected via JS -->
+              </div>
+
+              <!-- Math -->
+              <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1 text-xs font-mono">
+                <div class="flex justify-between text-slate-400">
+                  <span>Subtotal:</span>
+                  <span id="inv-subtotal" class="text-slate-200">₹0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>CGST (2.5%):</span>
+                  <span id="inv-cgst">₹0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>SGST (2.5%):</span>
+                  <span id="inv-sgst">₹0.00</span>
+                </div>
+                <div class="border-t border-slate-800 pt-1 flex justify-between font-bold text-sm text-white">
+                  <span>Grand Total:</span>
+                  <span id="inv-grand-total" class="text-amber-400">₹0.00</span>
+                </div>
+              </div>
+
+              <!-- Payment Mode Selector -->
+              <div class="space-y-2">
+                <span class="text-xs text-slate-400 font-bold uppercase">Payment Mode</span>
+                <div class="grid grid-cols-3 gap-1.5 text-xs">
+                  <button onclick="setSimPayMode('UPI')" id="sim-pay-UPI" class="py-1.5 bg-amber-500 text-slate-950 font-bold rounded-lg text-center">📱 UPI QR</button>
+                  <button onclick="setSimPayMode('CASH')" id="sim-pay-CASH" class="py-1.5 bg-slate-800 text-slate-300 font-medium rounded-lg text-center border border-slate-700">💵 Cash</button>
+                  <button onclick="setSimPayMode('CARD')" id="sim-pay-CARD" class="py-1.5 bg-slate-800 text-slate-300 font-medium rounded-lg text-center border border-slate-700">💳 Card</button>
+                </div>
+
+                <!-- UPI Dynamic Box -->
+                <div id="sim-upi-box" class="bg-slate-950 p-2 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span class="text-xs text-emerald-400 font-bold">● UPI Ready</span>
+                    <p class="text-xs text-slate-400">Scan via GPay / PhonePe</p>
+                  </div>
+                  <div class="w-11 h-11 bg-white p-1 rounded grid grid-cols-3 gap-0.5">
+                    <div class="bg-black"></div><div class="bg-black"></div><div class="bg-white"></div>
+                    <div class="bg-white"></div><div class="bg-black"></div><div class="bg-black"></div>
+                    <div class="bg-black"></div><div class="bg-white"></div><div class="bg-black"></div>
+                  </div>
+                </div>
+
+                <!-- Settle Button -->
+                <button onclick="simSettleBill()" class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-transform">
+                  <span>🧾 Settle Payment & Free Table</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Floating Cart Bar (Inside Phone - Captain Mode) -->
+        <div id="sim-cart-bar" class="hidden absolute bottom-3 left-3 right-3 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-2xl p-2.5 z-40 shadow-2xl flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400">Selected Items</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs bg-amber-500 text-slate-950 font-bold px-1.5 py-0.5 rounded-full" id="sim-cart-count">0</span>
+              <span class="text-xs font-bold text-white font-mono" id="sim-cart-price">₹0.00</span>
+            </div>
+          </div>
+          <button onclick="simFireKOT()" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-xs rounded-xl shadow active:scale-95 transition-transform flex items-center gap-1">
+            <span>🔥 Fire KOT</span>
+            <span>➔</span>
+          </button>
+        </div>
+
+        <!-- Android Bottom Gesture Pill Bar -->
+        <div class="h-4 flex items-center justify-center shrink-0 z-40">
+          <div class="w-28 h-1 bg-slate-700 rounded-full"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Live Toast Message -->
+    <div id="sim-toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold shadow-2xl z-50 flex items-center gap-2 animate-in fade-in">
+      <span id="sim-toast-text">Alert</span>
+    </div>
+
+  </div>
+
+  <script>
+    // ================= SOUND SYNTHESIZER (NO EXTERNAL ASSETS) =================
+    let soundEnabled = true;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playBeep(frequency = 587.33, duration = 0.12, type = 'sine') {
+      if (!soundEnabled) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-icon').innerText = soundEnabled ? '🔊' : '🔇';
+      document.getElementById('sound-label').innerText = soundEnabled ? 'Audio On' : 'Muted';
+    }
+
+    // ================= RESTAURANT MODEL STATE =================
+    const SIM_MENU = [
+      { id: 'sm1', name: 'Paneer Tikka (6 pcs)', cat: 'Starters', price: 260, isVeg: true },
+      { id: 'sm2', name: 'Chicken Malai Tikka', cat: 'Starters', price: 320, isVeg: false },
+      { id: 'sm3', name: 'Butter Chicken Masala', cat: 'Mains', price: 360, isVeg: false },
+      { id: 'sm4', name: 'Paneer Butter Masala', cat: 'Mains', price: 290, isVeg: true },
+      { id: 'sm5', name: 'Dum Hyderabadi Biryani', cat: 'Biryani', price: 390, isVeg: false },
+      { id: 'sm6', name: 'Butter Garlic Naan', cat: 'Breads', price: 70, isVeg: true },
+      { id: 'sm7', name: 'Mango Lassi', cat: 'Drinks', price: 120, isVeg: true }
+    ];
+
+    let SIM_TABLES = [
+      { id: 'T-01', name: 'Table 1', zone: 'AC', capacity: 2, status: 'AVAILABLE', orders: [] },
+      { id: 'T-02', name: 'Table 2', zone: 'Main', capacity: 4, status: 'AVAILABLE', orders: [] },
+      { id: 'T-03', name: 'Table 3', zone: 'Main', capacity: 4, status: 'AVAILABLE', orders: [] },
+      { id: 'T-04', name: 'Table 4', zone: 'Rooftop', capacity: 6, status: 'AVAILABLE', orders: [] },
+      { id: 'T-05', name: 'Table 5', zone: 'AC', capacity: 4, status: 'AVAILABLE', orders: [] },
+      { id: 'T-06', name: 'Table 6', zone: 'Rooftop', capacity: 8, status: 'AVAILABLE', orders: [] }
+    ];
+
+    let currentRole = 'captain';
+    let currentTable = null;
+    let selectedCat = 'All';
+    let simCart = {};
+    let kotCounter = 101;
+    let activeKOTs = [];
+    let currentZone = 'all';
+
+    // Clock
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById('sim-clock').innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }, 15000);
+
+    // ================= INIT =================
+    window.onload = function() {
+      renderSimTables();
+      renderSimCategories();
+      renderSimMenu();
+      
+      // Seed Table 3 so there is immediately something in the kitchen to explore!
+      const t3 = SIM_TABLES.find(t => t.id === 'T-03');
+      t3.status = 'OCCUPIED';
+      const seedTicket = {
+        kotId: 100,
+        tableId: 'T-03',
+        items: [
+          { name: 'Paneer Tikka (6 pcs)', price: 260, qty: 1 },
+          { name: 'Butter Garlic Naan', price: 70, qty: 2 }
+        ],
+        notes: 'Less spicy please',
+        status: 'PREPARING',
+        timeStr: '4m ago'
+      };
+      t3.orders.push(seedTicket);
+      activeKOTs.push(seedTicket);
+      updateKDSBadges();
+      renderSimTables();
+    };
+
+    // ================= STEP / ROLE SWITCHER =================
+    function switchRole(role) {
+      currentRole = role;
+      playBeep(440, 0.08);
+
+      ['captain', 'kitchen', 'server', 'billing'].forEach((r, idx) => {
+        const topStepBtn = document.getElementById(`sim-step-${idx + 1}`);
+        if (r === role) {
+          topStepBtn.className = "py-2 px-1 rounded-xl text-center transition-all bg-amber-500 text-slate-950 font-bold shadow";
+        } else {
+          topStepBtn.className = "py-2 px-1 rounded-xl text-center transition-all bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] relative";
+        }
+      });
+
+      document.getElementById('view-captain').classList.toggle('hidden', role !== 'captain');
+      document.getElementById('view-kitchen').classList.toggle('hidden', role !== 'kitchen');
+      document.getElementById('view-server').classList.toggle('hidden', role !== 'server');
+      document.getElementById('view-billing').classList.toggle('hidden', role !== 'billing');
+
+      document.getElementById('sim-appbar-sub').innerText = 
+        role === 'captain' ? `Floor Captain • TBL: ${currentTable ? currentTable.id : 'None'}` :
+        role === 'kitchen' ? 'Kitchen Display System (KDS)' :
+        role === 'server' ? 'Food Runner / Waiter' : 'Cashier Checkout';
+
+      updateCartBar();
+
+      if (role === 'kitchen') renderKitchenTickets();
+      if (role === 'server') renderServerTickets();
+      if (role === 'billing') renderBillingTables();
+    }
+
+    // ================= CAPTAIN STEP =================
+    function setZone(z) {
+      currentZone = z;
+      document.querySelectorAll('.zone-tag').forEach(b => {
+        b.className = "zone-tag px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg shrink-0";
+      });
+      event.target.className = "zone-tag active px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg shrink-0";
+      renderSimTables();
+    }
+
+    function renderSimTables() {
+      const grid = document.getElementById('sim-table-grid');
+      grid.innerHTML = '';
+
+      const filtered = currentZone === 'all' 
+        ? SIM_TABLES 
+        : SIM_TABLES.filter(t => t.zone === currentZone);
+
+      filtered.forEach(t => {
+        const isFree = t.status === 'AVAILABLE';
+        const card = document.createElement('div');
+        card.className = `p-2 rounded-xl border text-left cursor-pointer transition-all active:scale-95 flex flex-col justify-between h-20 ${
+          isFree ? 'border-emerald-600/40 bg-slate-900/80 text-emerald-400 hover:border-emerald-400' : 'border-amber-500/50 bg-amber-950/25 text-amber-300'
+        }`;
+        card.onclick = () => selectSimTable(t);
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-white">${t.id}</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded ${isFree ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'}">
+              ${t.status}
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-400">
+            ${t.name} • ${t.capacity}p
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function selectSimTable(t) {
+      currentTable = t;
+      playBeep(659.25, 0.1);
+      document.getElementById('captain-tables-block').classList.add('hidden');
+      document.getElementById('captain-menu-block').classList.remove('hidden');
+      document.getElementById('sim-menu-tbl-title').innerText = `${t.name} (${t.id}) • ${t.capacity} Covers`;
+      document.getElementById('sim-active-table-badge').innerText = `Table: ${t.id}`;
+      document.getElementById('kot-display-seq').innerText = kotCounter;
+      simCart = {};
+      updateCartBar();
+    }
+
+    function returnToTableSelect() {
+      document.getElementById('captain-menu-block').classList.add('hidden');
+      document.getElementById('captain-tables-block').classList.remove('hidden');
+      currentTable = null;
+      document.getElementById('sim-active-table-badge').innerText = `Table: None`;
+      updateCartBar();
+      renderSimTables();
+    }
+
+    function renderSimCategories() {
+      const cats = ['All', 'Starters', 'Mains', 'Biryani', 'Breads', 'Drinks'];
+      const c = document.getElementById('sim-category-list');
+      c.innerHTML = cats.map(cat => `
+        <button onclick="pickSimCat('${cat}')" class="px-2.5 py-1 rounded-lg text-xs shrink-0 font-medium ${
+          selectedCat === cat ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'
+        }">${cat}</button>
+      `).join('');
+    }
+
+    function pickSimCat(cat) {
+      selectedCat = cat;
+      renderSimCategories();
+      renderSimMenu();
+    }
+
+    function renderSimMenu() {
+      const c = document.getElementById('sim-menu-items');
+      c.innerHTML = '';
+      const filtered = SIM_MENU.filter(m => selectedCat === 'All' || m.cat === selectedCat);
+
+      filtered.forEach(item => {
+        const qty = simCart[item.id] || 0;
+        const row = document.createElement('div');
+        row.className = "bg-slate-900 border border-slate-800 p-2 rounded-xl flex items-center justify-between";
+        row.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full flex items-center justify-center text-[10px] ${
+              item.isVeg ? 'text-emerald-400' : 'text-red-400'
+            }">●</span>
+            <div>
+              <p class="text-xs font-semibold text-white leading-tight">${item.name}</p>
+              <p class="text-xs text-amber-400 font-mono">₹${item.price}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+            ${qty > 0 ? `
+              <button onclick="adjustSimQty('${item.id}', -1)" class="w-5 h-5 rounded bg-slate-800 text-white font-bold text-xs flex items-center justify-center">-</button>
+              <span class="text-xs font-bold text-amber-400 px-1">${qty}</span>
+            ` : ''}
+            <button onclick="adjustSimQty('${item.id}', 1)" class="w-5 h-5 rounded bg-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center">+</button>
+          </div>
+        `;
+        c.appendChild(row);
+      });
+    }
+
+    function adjustSimQty(id, delta) {
+      const current = simCart[id] || 0;
+      const next = current + delta;
+      if (next <= 0) delete simCart[id];
+      else simCart[id] = next;
+      playBeep(next > current ? 784 : 440, 0.06);
+      renderSimMenu();
+      updateCartBar();
+    }
+
+    function updateCartBar() {
+      let count = 0;
+      let sum = 0;
+      Object.keys(simCart).forEach(id => {
+        const item = SIM_MENU.find(m => m.id === id);
+        if (item) {
+          count += simCart[id];
+          sum += item.price * simCart[id];
+        }
+      });
+
+      document.getElementById('sim-cart-count').innerText = `${count} Items`;
+      document.getElementById('sim-cart-price').innerText = `₹${sum.toFixed(2)}`;
+      
+      const shouldShow = count > 0 && currentRole === 'captain' && currentTable !== null;
+      document.getElementById('sim-cart-bar').classList.toggle('hidden', !shouldShow);
+    }
+
+    // FIRE KOT TO KITCHEN
+    function simFireKOT() {
+      if (!currentTable) return;
+      playBeep(880, 0.25, 'triangle');
+
+      const items = Object.keys(simCart).map(id => {
+        const m = SIM_MENU.find(x => x.id === id);
+        return { name: m.name, price: m.price, qty: simCart[id] };
+      });
+
+      const ticket = {
+        kotId: kotCounter++,
+        tableId: currentTable.id,
+        items: items,
+        notes: 'Chef: Prepare fresh & serve promptly',
+        status: 'PENDING',
+        timeStr: 'Just now'
+      };
+
+      currentTable.status = 'OCCUPIED';
+      currentTable.orders.push(ticket);
+      activeKOTs.unshift(ticket);
+
+      simCart = {};
+      updateCartBar();
+      updateKDSBadges();
+      returnToTableSelect();
+
+      showSimToast(`🔥 KOT #${ticket.kotId} fired to Kitchen for ${ticket.tableId}!`);
+    }
+
+    // ================= KITCHEN DISPLAY SYSTEM =================
+    function renderKitchenTickets() {
+      const c = document.getElementById('sim-kds-tickets');
+      const active = activeKOTs.filter(k => k.status === 'PENDING' || k.status === 'PREPARING');
+      document.getElementById('sim-kds-counter').innerText = `${active.length} Active`;
+
+      if (active.length === 0) {
+        c.innerHTML = `
+          <div class="text-center py-12 text-slate-500">
+            <span class="text-2xl block mb-1">👨‍🍳</span>
+            <p class="text-xs">No pending orders in kitchen</p>
+          </div>
+        `;
+        return;
+      }
+
+      c.innerHTML = '';
+      active.forEach(ticket => {
+        const isPrep = ticket.status === 'PREPARING';
+        const card = document.createElement('div');
+        card.className = `bg-slate-900 border rounded-xl p-2.5 space-y-2 ${
+          isPrep ? 'border-amber-500/60' : 'border-slate-800'
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+            <span class="text-xs font-bold text-white bg-slate-800 px-1.5 py-0.5 rounded">KOT #${ticket.kotId}</span>
+            <span class="text-xs font-black text-amber-400">${ticket.tableId}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${isPrep ? 'bg-amber-500/20 text-amber-300' : 'bg-red-500/20 text-red-300'}">
+              ${ticket.status}
+            </span>
+          </div>
+
+          <div class="space-y-1 text-xs">
+            ${ticket.items.map(it => `
+              <div class="flex justify-between">
+                <span class="text-slate-200">${it.name}</span>
+                <span class="text-amber-400 font-bold font-mono">x${it.qty}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="pt-1">
+            ${ticket.status === 'PENDING' ? `
+              <button onclick="setTicketState(${ticket.kotId}, 'PREPARING')" class="w-full py-1.5 bg-amber-500 text-slate-950 font-bold rounded-lg text-xs">
+                🍳 Start Preparing
+              </button>
+            ` : `
+              <button onclick="setTicketState(${ticket.kotId}, 'READY')" class="w-full py-1.5 bg-emerald-500 text-slate-950 font-bold rounded-lg text-xs">
+                ✓ Food Cooked! Mark Ready
+              </button>
+            `}
+          </div>
+        `;
+        c.appendChild(card);
+      });
+    }
+
+    function setTicketState(kotId, state) {
+      const ticket = activeKOTs.find(k => k.kotId === kotId);
+      if (ticket) {
+        ticket.status = state;
+        playBeep(state === 'READY' ? 1046.5 : 523.25, 0.2);
+        showSimToast(state === 'READY' ? `KOT #${kotId} is READY for Server Pickup!` : `Chef started preparing KOT #${kotId}`);
+      }
+      updateKDSBadges();
+      renderKitchenTickets();
+    }
+
+    // ================= SERVER FLOW =================
+    function renderServerTickets() {
+      const c = document.getElementById('sim-server-tickets');
+      const ready = activeKOTs.filter(k => k.status === 'READY');
+      document.getElementById('sim-server-counter').innerText = `${ready.length} Ready`;
+
+      if (ready.length === 0) {
+        c.innerHTML = `
+          <div class="text-center py-12 text-slate-500">
+            <span class="text-2xl block mb-1">🛎️</span>
+            <p class="text-xs">No food waiting at pickup counter</p>
+          </div>
+        `;
+        return;
+      }
+
+      c.innerHTML = '';
+      ready.forEach(ticket => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-emerald-500/50 rounded-xl p-2.5 space-y-2";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white">KOT #${ticket.kotId} • ${ticket.tableId}</span>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded">HOT & READY</span>
+          </div>
+
+          <div class="space-y-0.5 text-xs">
+            ${ticket.items.map(it => `
+              <div class="flex justify-between text-slate-300">
+                <span>${it.name}</span>
+                <span class="text-emerald-400 font-bold">x${it.qty}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <button onclick="simDeliver(${ticket.kotId})" class="w-full py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold rounded-lg text-xs">
+            🛎️ Deliver to Table (Mark Served)
+          </button>
+        `;
+        c.appendChild(card);
+      });
+    }
+
+    function simDeliver(kotId) {
+      const ticket = activeKOTs.find(k => k.kotId === kotId);
+      if (ticket) {
+        ticket.status = 'SERVED';
+        playBeep(659.25, 0.15);
+        showSimToast(`Delivered KOT #${kotId} to ${ticket.tableId}!`);
+      }
+      updateKDSBadges();
+      renderServerTickets();
+    }
+
+    // ================= CASHIER BILLING =================
+    let selectedBillTbl = null;
+
+    function renderBillingTables() {
+      const grid = document.getElementById('sim-billing-tables');
+      grid.innerHTML = '';
+
+      SIM_TABLES.forEach(t => {
+        const hasOrders = t.orders.length > 0;
+        const btn = document.createElement('button');
+        btn.className = `p-2 rounded-xl border text-left transition-all ${
+          hasOrders ? 'border-amber-500/60 bg-amber-950/20' : 'border-slate-800 bg-slate-900/40 opacity-50'
+        } ${selectedBillTbl && selectedBillTbl.id === t.id ? 'ring-2 ring-amber-500' : ''}`;
+        btn.onclick = () => selectSimBillTable(t);
+        btn.innerHTML = `
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-white">${t.id}</span>
+            <span class="text-[10px] text-amber-300 font-bold">${hasOrders ? t.orders.length + ' KOTs' : 'Free'}</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">${t.name}</p>
+        `;
+        grid.appendChild(btn);
+      });
+
+      if (!selectedBillTbl) {
+        const firstOcc = SIM_TABLES.find(t => t.orders.length > 0);
+        if (firstOcc) selectSimBillTable(firstOcc);
+      }
+    }
+
+    function selectSimBillTable(tbl) {
+      selectedBillTbl = tbl;
+      playBeep(523.25, 0.08);
+      const box = document.getElementById('sim-invoice-box');
+      if (!tbl || tbl.orders.length === 0) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      box.classList.remove('hidden');
+      document.getElementById('inv-table-name').innerText = `${tbl.name} (${tbl.id})`;
+      document.getElementById('inv-order-code').innerText = `#ORD-70${Math.floor(Math.random() * 90 + 10)}`;
+
+      const consolidated = {};
+      tbl.orders.forEach(k => {
+        k.items.forEach(it => {
+          if (!consolidated[it.name]) consolidated[it.name] = { price: it.price, qty: 0 };
+          consolidated[it.name].qty += it.qty;
+        });
+      });
+
+      const list = document.getElementById('inv-lines');
+      list.innerHTML = '';
+      let subtotal = 0;
+
+      Object.keys(consolidated).forEach(name => {
+        const it = consolidated[name];
+        const lineTotal = it.price * it.qty;
+        subtotal += lineTotal;
+        const r = document.createElement('div');
+        r.className = "flex justify-between text-slate-300 py-0.5";
+        r.innerHTML = `
+          <span>${name} <span class="text-slate-500 text-[10px]">x${it.qty}</span></span>
+          <span class="font-mono text-slate-200">₹${lineTotal.toFixed(2)}</span>
+        `;
+        list.appendChild(r);
+      });
+
+      const cgst = subtotal * 0.025;
+      const sgst = subtotal * 0.025;
+      const grand = Math.round(subtotal + cgst + sgst);
+
+      document.getElementById('inv-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
+      document.getElementById('inv-cgst').innerText = `₹${cgst.toFixed(2)}`;
+      document.getElementById('inv-sgst').innerText = `₹${sgst.toFixed(2)}`;
+      document.getElementById('inv-grand-total').innerText = `₹${grand.toFixed(2)}`;
+
+      tbl.pendingTotal = grand;
+    }
+
+    function setSimPayMode(m) {
+      playBeep(587.33, 0.06);
+      ['UPI', 'CASH', 'CARD'].forEach(mode => {
+        document.getElementById(`sim-pay-${mode}`).className = mode === m 
+          ? "py-1.5 bg-amber-500 text-slate-950 font-bold rounded-lg text-center"
+          : "py-1.5 bg-slate-800 text-slate-300 font-medium rounded-lg text-center border border-slate-700";
+      });
+      document.getElementById('sim-upi-box').classList.toggle('hidden', m !== 'UPI');
+    }
+
+    function simSettleBill() {
+      if (!selectedBillTbl) return;
+      playBeep(1174.66, 0.3, 'square');
+
+      const tbl = selectedBillTbl;
+      showSimToast(`Bill Settled for ${tbl.id}! Table cleared.`);
+
+      tbl.status = 'AVAILABLE';
+      tbl.orders = [];
+      activeKOTs = activeKOTs.filter(k => k.tableId !== tbl.id);
+
+      selectedBillTbl = null;
+      document.getElementById('sim-invoice-box').classList.add('hidden');
+      updateKDSBadges();
+      renderBillingTables();
+      renderSimTables();
+    }
+
+    // ================= BADGES & TOAST =================
+    function updateKDSBadges() {
+      const activeCount = activeKOTs.filter(k => k.status === 'PENDING' || k.status === 'PREPARING').length;
+      const readyCount = activeKOTs.filter(k => k.status === 'READY').length;
+
+      const kb = document.getElementById('sim-badge-kitchen');
+      kb.innerText = activeCount;
+      kb.classList.toggle('hidden', activeCount === 0);
+
+      const sb = document.getElementById('sim-badge-server');
+      sb.innerText = readyCount;
+      sb.classList.toggle('hidden', readyCount === 0);
+    }
+
+    function showSimToast(msg) {
+      const t = document.getElementById('sim-toast');
+      document.getElementById('sim-toast-text').innerText = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2800);
+    }
+
+    // ================= GUIDED 1-CLICK TOUR =================
+    async function runAutoTour() {
+      showSimToast("Starting Guided Tour: Step 1 (Captain)...");
+      switchRole('captain');
+      returnToTableSelect();
+      await delay(1200);
+
+      // 1. Select Table 1
+      const t1 = SIM_TABLES[0];
+      selectSimTable(t1);
+      showSimToast("Captain selected Table 1");
+      await delay(1000);
+
+      // 2. Add Butter Chicken + Naan
+      adjustSimQty('sm3', 1);
+      await delay(800);
+      adjustSimQty('sm6', 2);
+      showSimToast("Added Butter Chicken + 2 Naans");
+      await delay(1200);
+
+      // 3. Fire KOT
+      simFireKOT();
+      await delay(1500);
+
+      // 4. Switch to Kitchen KDS
+      showSimToast("Switching to Kitchen KDS (Chef)...");
+      switchRole('kitchen');
+      await delay(1500);
+
+      // 5. Start cooking
+      const latestKOT = activeKOTs[0];
+      setTicketState(latestKOT.kotId, 'PREPARING');
+      await delay(1500);
+
+      // 6. Food cooked
+      setTicketState(latestKOT.kotId, 'READY');
+      await delay(1500);
+
+      // 7. Waiter serving
+      showSimToast("Switching to Waiter Serving...");
+      switchRole('server');
+      await delay(1500);
+      simDeliver(latestKOT.kotId);
+      await delay(1500);
+
+      // 8. Cashier Billing
+      showSimToast("Switching to Cashier Billing...");
+      switchRole('billing');
+      selectSimBillTable(t1);
+      await delay(2000);
+
+      showSimToast("Tour Complete! You can now freely interact.");
+    }
+
+    function delay(ms) {
+      return new Promise(res => setTimeout(res, ms));
+    }
+  </script>
+</body>
+</html>

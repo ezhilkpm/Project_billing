@@ -1,0 +1,10 @@
+{
+  "appId": "com.chefpulse.pos",
+  "appName": "ChefPulse POS",
+  "webDir": "public",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "http",
+    "allowMixedContent": true
+  }
+}

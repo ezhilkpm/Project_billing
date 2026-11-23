@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="128" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="210" fill="#f59e0b" fill-opacity="0.1" stroke="#f59e0b" stroke-width="12"/>
+  <g transform="translate(106, 106) scale(0.6)">
+    <!-- Plate -->
+    <circle cx="250" cy="250" r="200" fill="#1e293b" stroke="#f59e0b" stroke-width="18"/>
+    <circle cx="250" cy="250" r="140" fill="#0f172a" stroke="#f59e0b" stroke-width="6" stroke-dasharray="8 8"/>
+    <!-- Fork & Spoon -->
+    <path d="M190 140 v120 c0 30 20 50 40 50 v100 h20 v-100 c20 0 40-20 40-50 v-120" stroke="#f8fafc" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <path d="M220 140 v70 M250 140 v70 M280 140 v70" stroke="#f8fafc" stroke-width="12" stroke-linecap="round"/>
+  </g>
+</svg>
