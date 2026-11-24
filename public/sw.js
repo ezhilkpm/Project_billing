@@ -1,5 +1,5 @@
 // public/sw.js - Network-First Service Worker (Prevents Stale Cache)
-const CACHE_NAME = 'chefpulse-pos-v5';
+const CACHE_NAME = 'chefpulse-pos-v6';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

@@ -8,7 +8,19 @@ import {
   getBootstrapConfig 
 } from './offlineDb.js';
 
-let serverBaseUrl = (typeof window !== 'undefined' ? (localStorage.getItem('cp_pos_server_url') || window.location.origin) : 'http://localhost:4000');
+function resolveInitialSyncServerUrl() {
+  if (typeof window !== 'undefined') {
+    const proto = window.location.protocol;
+    if (proto === 'http:' || proto === 'https:') {
+      return window.location.origin.replace(/\/+$/, '');
+    }
+    const saved = localStorage.getItem('cp_pos_server_url');
+    if (saved && saved.startsWith('http')) return saved.replace(/\/+$/, '');
+  }
+  return 'http://localhost:4000';
+}
+
+let serverBaseUrl = resolveInitialSyncServerUrl();
 let terminalId = (typeof window !== 'undefined' ? (localStorage.getItem('cp_pos_terminal_id') || 'MOB-COUNTER-01') : 'MOB-COUNTER-01');
 let apiKey = (typeof window !== 'undefined' ? (localStorage.getItem('cp_pos_api_key') || '') : '');
 

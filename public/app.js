@@ -5,42 +5,49 @@ function getEffectiveServerBase() {
   if (typeof window !== 'undefined') {
     const proto = window.location.protocol;
     const origin = window.location.origin;
-    const isCloudOrigin = origin && (origin.includes('.onrender.com') || (!origin.includes('localhost') && !origin.includes('127.0.0.1') && !origin.startsWith('file:')));
+    const host = window.location.host;
 
+    // In a browser loaded over HTTP or HTTPS (e.g. Render, custom domain, or LAN):
+    // ALWAYS use the current origin! This guarantees 100% zero-config and avoids mixed-content or IP-mismatch bugs.
+    if (proto === 'http:' || proto === 'https:') {
+      try {
+        const saved = localStorage.getItem('cp_pos_server_url');
+        if (saved) {
+          // If saved has an old Wi-Fi IP (192.168.x.x) or localhost that differs from current host, update it to current origin
+          try {
+            const parsed = new URL(saved);
+            if (parsed.host !== host) {
+              console.log('[ChefPulse POS] Migrated stale server IP from ' + saved + ' to current origin: ' + origin);
+              localStorage.setItem('cp_pos_server_url', origin);
+            }
+          } catch (e) {
+            localStorage.setItem('cp_pos_server_url', origin);
+          }
+        } else {
+          localStorage.setItem('cp_pos_server_url', origin);
+        }
+      } catch (e) {}
+
+      return origin.replace(/\/+$/, '');
+    }
+
+    // Only for Capacitor Native APK / file:// where window.location.origin is capacitor://localhost or null
     try {
       const saved = localStorage.getItem('cp_pos_server_url');
-      if (saved && saved.startsWith('http')) {
-        // If we are on Render or public HTTPS domain, do not allow stale localhost to override origin
-        if (isCloudOrigin && (saved.includes('localhost') || saved.includes('127.0.0.1'))) {
-          localStorage.removeItem('cp_pos_server_url');
-        } else {
-          return saved.replace(/\/+$/, '');
-        }
-      }
+      if (saved && saved.startsWith('http')) return saved.replace(/\/+$/, '');
     } catch (e) {}
 
-    // If running from file:// or Capacitor WebView (where origin is http://localhost with no port), use local POS port 4000
-    if (proto === 'file:' || !origin || origin === 'null' || origin.startsWith('file:') || (origin.includes('localhost') && !window.location.port)) {
-      return 'http://localhost:4000';
-    }
-    return origin.replace(/\/+$/, '');
+    return 'http://localhost:4000';
   }
   return 'http://localhost:4000';
 }
 
 function getEffectiveWsUrl() {
-  const base = getEffectiveServerBase();
-  try {
-    const url = new URL(base);
-    const wsProto = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${wsProto}//${url.host}`;
-  } catch (e) {
-    if (typeof window !== 'undefined' && window.location.host) {
-      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      return `${wsProto}//${window.location.host}`;
-    }
-    return 'ws://localhost:4000';
+  if (typeof window !== 'undefined' && window.location.host) {
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProto}//${window.location.host}`;
   }
+  return 'ws://localhost:4000';
 }
 
 let SERVER_BASE = getEffectiveServerBase();

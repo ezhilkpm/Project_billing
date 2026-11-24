@@ -432,7 +432,9 @@ export async function printViaNetwork(buffer, ip, port = 9100) {
   if (!ip) throw new Error('Printer IP address is required');
 
   const base64Data = btoa(String.fromCharCode.apply(null, buffer));
-  const serverUrl = localStorage.getItem('cp_pos_server_url') || window.location.origin;
+  const serverUrl = (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:'))
+    ? window.location.origin.replace(/\/+$/, '')
+    : (localStorage.getItem('cp_pos_server_url') || 'http://localhost:4000').replace(/\/+$/, '');
 
   const res = await fetch(`${serverUrl}/api/pos/print-raw`, {
     method: 'POST',

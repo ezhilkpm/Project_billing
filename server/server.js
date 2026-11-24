@@ -158,15 +158,28 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
 
+export function getPublicBaseUrl(req) {
+  const forwardedHost = req?.get('x-forwarded-host');
+  const host = forwardedHost || req?.get('host');
+  if (host && !host.includes('127.0.0.1') && !host.includes('localhost') && !host.startsWith('10.') && !host.startsWith('172.') && !host.startsWith('192.168.')) {
+    const proto = req.get('x-forwarded-proto') || req.protocol || 'https';
+    return `${proto}://${host}`;
+  }
+  const localIP = getLocalIPAddress();
+  return `http://${localIP}:${PORT}`;
+}
+
 app.get('/api/status', (req, res) => {
   const localIP = getLocalIPAddress();
+  const publicUrl = getPublicBaseUrl(req);
   res.json({
     status: 'online',
     serverTime: new Date().toISOString(),
     localIP: localIP,
     port: PORT,
-    mobileUrl: `http://${localIP}:${PORT}`,
-    desktopUrl: `http://localhost:${PORT}`
+    serverUrl: publicUrl,
+    mobileUrl: publicUrl,
+    desktopUrl: publicUrl
   });
 });
 
@@ -1375,9 +1388,8 @@ app.post('/api/menu/reset-classic', (req, res) => {
 // 31. Client Setups & App Downloads (Windows & Android Mobile)
 app.get('/api/downloads/info', (req, res) => {
   const localIP = getLocalIPAddress();
-  const host = req.hostname || localIP;
-  const serverUrl = `http://${localIP}:${PORT}`;
-  const tvUrl = `http://${localIP}:${PORT}/tv.html`;
+  const serverUrl = getPublicBaseUrl(req);
+  const tvUrl = `${serverUrl}/tv.html`;
 
   const exePath = path.join(publicDir, 'downloads', 'ChefPulse_POS_Setup.exe');
   const apkPath = path.join(publicDir, 'downloads', 'ChefPulse_POS_Captain.apk');
@@ -1519,12 +1531,15 @@ exit
 
 app.get('/api/downloads/android-config', (req, res) => {
   const localIP = getLocalIPAddress();
+  const serverUrl = getPublicBaseUrl(req);
+  const wsProto = serverUrl.startsWith('https:') ? 'wss:' : 'ws:';
+  const wsUrl = serverUrl.replace(/^https?:/, wsProto);
   const config = {
     appName: 'ChefPulse Mobile POS',
     serverIp: localIP,
     port: PORT,
-    posUrl: `http://${localIP}:${PORT}`,
-    wsUrl: `ws://${localIP}:${PORT}`,
+    posUrl: serverUrl,
+    wsUrl: wsUrl,
     version: '4.0.0',
     type: 'ANDROID_PWA',
     downloadedAt: new Date().toISOString()
