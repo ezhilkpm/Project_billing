@@ -1567,15 +1567,19 @@ app.use((req, res) => {
 // Start listening
 server.listen(PORT, HOST, () => {
   const localIP = getLocalIPAddress();
+  const isCloud = process.env.RENDER || process.env.PORT === '10000' || process.env.NODE_ENV === 'production';
+  const publicUrl = process.env.RENDER_EXTERNAL_URL || (isCloud ? 'https://project-billing.onrender.com' : `http://localhost:${PORT}`);
+  const wsUrl = publicUrl.startsWith('https:') ? publicUrl.replace('https:', 'wss:') : `ws://${localIP}:${PORT}`;
+
   console.log(`
 ===========================================================
   🍽️  ChefPulse Enterprise POS & Management Server Started
 ===========================================================
   OS Platform:        ${process.platform} (${process.arch})
   Port:               ${PORT}
-  Local Desktop View: http://localhost:${PORT}
-  Mobile Devices:     http://${localIP}:${PORT}
-  WebSocket Server:   ws://${localIP}:${PORT}
+  ${isCloud ? `Live Cloud URL:     ${publicUrl}` : `Local Desktop View: http://localhost:${PORT}`}
+  ${isCloud ? `Cloud WebSocket:    ${wsUrl}` : `Mobile Devices:     http://${localIP}:${PORT}`}
+  ${isCloud ? `Public Access:      Online via Render SSL` : `WebSocket Server:   ws://${localIP}:${PORT}`}
 ===========================================================
   Multi-Kitchen Routing • Floors & Tables • RBAC & Payroll
   Inventory Auto-Deduction • Daily Spend Ledger • Purchases
