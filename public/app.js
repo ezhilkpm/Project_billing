@@ -5012,6 +5012,14 @@ async function autoSuggestIngredientsWithGemini() {
 let currentRecipeItem = null;
 
 async function openRecipeModal(menuId) {
+  if (!menuId) {
+    menuId = document.getElementById('edit-menu-id')?.value || currentRecipeMenuId;
+  }
+  if (!menuId) {
+    showNotification('Please select a dish first', true);
+    return;
+  }
+
   currentRecipeMenuId = menuId;
   const modal = document.getElementById('recipe-modal');
   if (!modal) return;
@@ -5022,14 +5030,25 @@ async function openRecipeModal(menuId) {
     statusEl.innerHTML = '';
   }
 
+  // Pre-load inventory if not already available so ingredient selector has store items
+  if (!inventoryData || !inventoryData.items || inventoryData.items.length === 0) {
+    try {
+      const inv = await safeFetchJson(`${SERVER_BASE}/api/inventory`, { items: [] });
+      if (inv && Array.isArray(inv.items)) inventoryData = inv;
+    } catch(e) {}
+  }
+
   try {
     const res = await fetch(`${SERVER_BASE}/api/menu/${menuId}/recipe`);
     if (!res.ok) throw new Error('Failed to load recipe details');
     const item = await res.json();
     currentRecipeItem = item;
 
-    document.getElementById('rec-modal-dish-name').innerText = item.name;
-    document.getElementById('rec-modal-dish-info').innerText = `${item.category_name || item.category_id} • ₹${item.price} • ${item.kitchen_name || 'Kitchen'}`;
+    const dishNameEl = document.getElementById('rec-modal-dish-name');
+    if (dishNameEl) dishNameEl.innerText = item.name;
+
+    const dishInfoEl = document.getElementById('rec-modal-dish-info');
+    if (dishInfoEl) dishInfoEl.innerText = `${item.category_name || item.category_id} • ₹${item.price} • ${item.kitchen_name || 'Kitchen'}`;
     
     const vegBadge = document.getElementById('rec-modal-veg-badge');
     if (vegBadge) {
@@ -5039,14 +5058,15 @@ async function openRecipeModal(menuId) {
     }
 
     const container = document.getElementById('recipe-ingredients-list');
-    container.innerHTML = '';
-
-    if (item.ingredients && item.ingredients.length > 0) {
-      item.ingredients.forEach(ing => {
-        addRecipeIngredientRow(ing);
-      });
-    } else {
-      renderRecipeEmptyState();
+    if (container) {
+      container.innerHTML = '';
+      if (item.ingredients && item.ingredients.length > 0) {
+        item.ingredients.forEach(ing => {
+          addRecipeIngredientRow(ing);
+        });
+      } else {
+        renderRecipeEmptyState();
+      }
     }
 
     calculateRecipeCostSummary();
@@ -5055,6 +5075,18 @@ async function openRecipeModal(menuId) {
     showNotification(err.message, true);
   }
 }
+
+function openRecipeModalFromEditModal() {
+  const id = document.getElementById('edit-menu-id')?.value || currentRecipeMenuId;
+  if (!id) {
+    showNotification('Menu item ID not found. Please re-open the edit window.', true);
+    return;
+  }
+  openRecipeModal(id);
+}
+
+window.openRecipeModal = openRecipeModal;
+window.openRecipeModalFromEditModal = openRecipeModalFromEditModal;
 
 function closeRecipeModal() {
   const modal = document.getElementById('recipe-modal');
