@@ -74,6 +74,7 @@ import {
   restoreDatabaseFromBackup,
   getDatabaseHealth,
   seedClassicHotelRealMenu,
+  ensureInventoryItem,
   getAllActiveOrdersWithStatus,
   forceRouteOrder,
   transferTable,
@@ -1091,10 +1092,12 @@ app.post('/api/ai/suggest-ingredients', async (req, res) => {
     if (!dishName || !dishName.trim()) {
       return res.status(400).json({ error: 'Dish name is required' });
     }
+    const key = apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || null;
     const inventory = getInventoryStatus();
     const invItems = Array.isArray(inventory) ? inventory : (inventory?.items || []);
-    const result = await suggestRecipeIngredients(dishName, isVeg, category, invItems, apiKey);
-    res.json(result);
+    const result = await suggestRecipeIngredients(dishName, isVeg, category, invItems, key, ensureInventoryItem);
+    const updatedInventory = getInventoryStatus();
+    res.json({ ...result, updatedInventory });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

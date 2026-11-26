@@ -439,6 +439,30 @@ export function seedClassicHotelRealMenu() {
   invStmt.run('inv-oil', 'Refined Cooking Oil', 'Oils', 'ltr', 45.0, 10.0, 135);
   invStmt.run('inv-butter', 'Pure Cooking Butter', 'Dairy', 'kg', 15.0, 3.0, 420);
   invStmt.run('inv-spices', 'Pepper & Biryani Spices', 'Spices', 'kg', 12.0, 2.5, 380);
+  // Comprehensive Commercial Pantry & Spices
+  invStmt.run('inv-tomato', 'Fresh Ripe Tomatoes & Puree', 'Produce', 'kg', 50.0, 10.0, 35);
+  invStmt.run('inv-onion', 'Fresh Red Onions', 'Produce', 'kg', 60.0, 15.0, 40);
+  invStmt.run('inv-ginger-garlic', 'Ginger Garlic Paste', 'Produce', 'kg', 15.0, 3.0, 120);
+  invStmt.run('inv-cream', 'Fresh Dairy Cooking Cream', 'Dairy', 'kg', 20.0, 5.0, 260);
+  invStmt.run('inv-cashew', 'Broken Cashew Nuts / Kaju Paste', 'Grocery', 'kg', 12.0, 2.0, 680);
+  invStmt.run('inv-kasurimethi', 'Kasuri Methi (Dried Fenugreek)', 'Spices', 'kg', 5.0, 1.0, 350);
+  invStmt.run('inv-garam-masala', 'Authentic Garam Masala Blend', 'Spices', 'kg', 8.0, 2.0, 480);
+  invStmt.run('inv-red-chilli', 'Kashmiri Red Chilli Powder', 'Spices', 'kg', 10.0, 2.0, 380);
+  invStmt.run('inv-curd', 'Fresh Thick Curd / Dahi', 'Dairy', 'kg', 25.0, 5.0, 65);
+  invStmt.run('inv-salt', 'Iodized Cooking Salt', 'Grocery', 'kg', 50.0, 10.0, 25);
+  invStmt.run('inv-coriander', 'Fresh Coriander & Mint Leaves', 'Produce', 'kg', 10.0, 2.0, 60);
+  invStmt.run('inv-green-chilli', 'Fresh Spicy Green Chillies', 'Produce', 'kg', 8.0, 2.0, 80);
+  invStmt.run('inv-cornflour', 'Corn Flour / Crispy Starch', 'Grocery', 'kg', 15.0, 3.0, 90);
+  invStmt.run('inv-soyasauce', 'Dark Soya Sauce & Vinegar', 'Grocery', 'ltr', 15.0, 3.0, 110);
+  invStmt.run('inv-turmeric', 'Pure Turmeric Powder (Haldi)', 'Spices', 'kg', 8.0, 2.0, 240);
+  invStmt.run('inv-cumin', 'Cumin Seeds & Jeera Powder', 'Spices', 'kg', 8.0, 2.0, 420);
+  invStmt.run('inv-garlic', 'Fresh Peeled Garlic Cloves', 'Produce', 'kg', 15.0, 3.0, 160);
+  invStmt.run('inv-capsicum', 'Fresh Green Capsicum / Bell Pepper', 'Produce', 'kg', 20.0, 5.0, 70);
+  invStmt.run('inv-mayo', 'Garlic Mayonnaise Sauce', 'Grocery', 'kg', 20.0, 5.0, 180);
+  invStmt.run('inv-sugar', 'Fine Crystal White Sugar', 'Grocery', 'kg', 40.0, 10.0, 45);
+  invStmt.run('inv-lemon', 'Fresh Lemons / Lime', 'Produce', 'pcs', 100.0, 20.0, 5);
+  invStmt.run('inv-6', 'Fresh Cow Milk', 'Dairy', 'ltr', 20.0, 5.0, 48);
+  invStmt.run('inv-4', 'Refined Wheat Flour (Maida)', 'Grains', 'kg', 50.0, 10.0, 42);
 
   // 4. Delete old dummy items and replace with the real 38 Classic Hotel dishes
   try {
@@ -451,51 +475,397 @@ export function seedClassicHotelRealMenu() {
     menuStmt.run(m.id, m.cat, m.name, m.price, m.veg, m.prep, m.kitchen, m.img);
   }
 
-  // 5. Recipe Portioning for Accurate Real-Time Stock Tracking
+  // 5. Recipe Portioning for Accurate Real-Time Stock Tracking (Full Commercial Restaurant Ingredients)
   const recStmt = db.prepare('INSERT INTO recipe_ingredients (menu_id, inventory_id, quantity_required) VALUES (?, ?, ?)');
-  // Meals & Biryani
-  recStmt.run('m-meals', 'inv-rice', 0.35); recStmt.run('m-meals', 'inv-oil', 0.03);
-  recStmt.run('m-biryani', 'inv-chicken', 0.25); recStmt.run('m-biryani', 'inv-basmati', 0.20); recStmt.run('m-biryani', 'inv-oil', 0.03);
-  recStmt.run('m-65-biryani', 'inv-chicken', 0.25); recStmt.run('m-65-biryani', 'inv-basmati', 0.20); recStmt.run('m-65-biryani', 'inv-oil', 0.04);
-  recStmt.run('m-kushka', 'inv-basmati', 0.20); recStmt.run('m-kushka', 'inv-oil', 0.03);
+  
+  // Meals & Biryani (Full authentic restaurant recipe)
+  // South Indian Meals (9 ingredients)
+  recStmt.run('m-meals', 'inv-rice', 0.35);
+  recStmt.run('m-meals', 'inv-tomato', 0.08);
+  recStmt.run('m-meals', 'inv-onion', 0.06);
+  recStmt.run('m-meals', 'inv-6', 0.08);
+  recStmt.run('m-meals', 'inv-butter', 0.01);
+  recStmt.run('m-meals', 'inv-oil', 0.025);
+  recStmt.run('m-meals', 'inv-turmeric', 0.004);
+  recStmt.run('m-meals', 'inv-salt', 0.008);
+  recStmt.run('m-meals', 'inv-coriander', 0.01);
+
+  // Chicken Biryani (12 ingredients)
+  recStmt.run('m-biryani', 'inv-chicken', 0.25);
+  recStmt.run('m-biryani', 'inv-basmati', 0.20);
+  recStmt.run('m-biryani', 'inv-onion', 0.10);
+  recStmt.run('m-biryani', 'inv-tomato', 0.06);
+  recStmt.run('m-biryani', 'inv-ginger-garlic', 0.025);
+  recStmt.run('m-biryani', 'inv-curd', 0.05);
+  recStmt.run('m-biryani', 'inv-butter', 0.02);
+  recStmt.run('m-biryani', 'inv-oil', 0.025);
+  recStmt.run('m-biryani', 'inv-spices', 0.02);
+  recStmt.run('m-biryani', 'inv-green-chilli', 0.01);
+  recStmt.run('m-biryani', 'inv-salt', 0.008);
+  recStmt.run('m-biryani', 'inv-coriander', 0.015);
+
+  // Chicken 65 Biryani (11 ingredients)
+  recStmt.run('m-65-biryani', 'inv-chicken', 0.25);
+  recStmt.run('m-65-biryani', 'inv-basmati', 0.20);
+  recStmt.run('m-65-biryani', 'inv-onion', 0.08);
+  recStmt.run('m-65-biryani', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-65-biryani', 'inv-curd', 0.04);
+  recStmt.run('m-65-biryani', 'inv-cornflour', 0.02);
+  recStmt.run('m-65-biryani', 'inv-red-chilli', 0.01);
+  recStmt.run('m-65-biryani', 'inv-spices', 0.02);
+  recStmt.run('m-65-biryani', 'inv-oil', 0.04);
+  recStmt.run('m-65-biryani', 'inv-salt', 0.008);
+  recStmt.run('m-65-biryani', 'inv-coriander', 0.015);
+
+  // Kushka (9 ingredients)
+  recStmt.run('m-kushka', 'inv-basmati', 0.20);
+  recStmt.run('m-kushka', 'inv-onion', 0.08);
+  recStmt.run('m-kushka', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-kushka', 'inv-curd', 0.03);
+  recStmt.run('m-kushka', 'inv-butter', 0.015);
+  recStmt.run('m-kushka', 'inv-oil', 0.02);
+  recStmt.run('m-kushka', 'inv-spices', 0.015);
+  recStmt.run('m-kushka', 'inv-salt', 0.006);
+  recStmt.run('m-kushka', 'inv-coriander', 0.015);
+
   recStmt.run('m-egg-extra', 'inv-egg', 1.0);
-  // Rice Varieties
-  recStmt.run('m-chk-rice', 'inv-chicken', 0.15); recStmt.run('m-chk-rice', 'inv-rice', 0.20); recStmt.run('m-chk-rice', 'inv-oil', 0.02);
-  recStmt.run('m-egg-rice', 'inv-egg', 2.0); recStmt.run('m-egg-rice', 'inv-rice', 0.20); recStmt.run('m-egg-rice', 'inv-oil', 0.02);
-  recStmt.run('m-paneer-rice', 'inv-paneer', 0.12); recStmt.run('m-paneer-rice', 'inv-rice', 0.20); recStmt.run('m-paneer-rice', 'inv-oil', 0.02);
-  recStmt.run('m-gobi-rice', 'inv-gobi', 0.15); recStmt.run('m-gobi-rice', 'inv-rice', 0.20); recStmt.run('m-gobi-rice', 'inv-oil', 0.02);
-  recStmt.run('m-mush-rice', 'inv-mushroom', 0.15); recStmt.run('m-mush-rice', 'inv-rice', 0.20); recStmt.run('m-mush-rice', 'inv-oil', 0.02);
-  recStmt.run('m-veg-rice', 'inv-rice', 0.20); recStmt.run('m-veg-rice', 'inv-oil', 0.02);
+
+  // Rice Varieties (Full recipes with vegetables, sauces & spices)
+  // Chicken Fried Rice (8 ingredients)
+  recStmt.run('m-chk-rice', 'inv-rice', 0.22);
+  recStmt.run('m-chk-rice', 'inv-chicken', 0.15);
+  recStmt.run('m-chk-rice', 'inv-egg', 1.0);
+  recStmt.run('m-chk-rice', 'inv-onion', 0.04);
+  recStmt.run('m-chk-rice', 'inv-soyasauce', 0.015);
+  recStmt.run('m-chk-rice', 'inv-oil', 0.03);
+  recStmt.run('m-chk-rice', 'inv-spices', 0.008);
+  recStmt.run('m-chk-rice', 'inv-salt', 0.005);
+
+  // Egg Fried Rice (7 ingredients)
+  recStmt.run('m-egg-rice', 'inv-rice', 0.25);
+  recStmt.run('m-egg-rice', 'inv-egg', 2.0);
+  recStmt.run('m-egg-rice', 'inv-onion', 0.04);
+  recStmt.run('m-egg-rice', 'inv-soyasauce', 0.015);
+  recStmt.run('m-egg-rice', 'inv-oil', 0.03);
+  recStmt.run('m-egg-rice', 'inv-spices', 0.008);
+  recStmt.run('m-egg-rice', 'inv-salt', 0.005);
+
+  // Paneer Fried Rice (8 ingredients)
+  recStmt.run('m-paneer-rice', 'inv-rice', 0.22);
+  recStmt.run('m-paneer-rice', 'inv-paneer', 0.12);
+  recStmt.run('m-paneer-rice', 'inv-onion', 0.04);
+  recStmt.run('m-paneer-rice', 'inv-capsicum', 0.03);
+  recStmt.run('m-paneer-rice', 'inv-soyasauce', 0.015);
+  recStmt.run('m-paneer-rice', 'inv-oil', 0.025);
+  recStmt.run('m-paneer-rice', 'inv-spices', 0.006);
+  recStmt.run('m-paneer-rice', 'inv-salt', 0.005);
+
+  // Gobi Fried Rice (7 ingredients)
+  recStmt.run('m-gobi-rice', 'inv-rice', 0.22);
+  recStmt.run('m-gobi-rice', 'inv-gobi', 0.15);
+  recStmt.run('m-gobi-rice', 'inv-onion', 0.04);
+  recStmt.run('m-gobi-rice', 'inv-soyasauce', 0.015);
+  recStmt.run('m-gobi-rice', 'inv-oil', 0.025);
+  recStmt.run('m-gobi-rice', 'inv-spices', 0.006);
+  recStmt.run('m-gobi-rice', 'inv-salt', 0.005);
+
+  // Mushroom Fried Rice (7 ingredients)
+  recStmt.run('m-mush-rice', 'inv-rice', 0.22);
+  recStmt.run('m-mush-rice', 'inv-mushroom', 0.15);
+  recStmt.run('m-mush-rice', 'inv-onion', 0.04);
+  recStmt.run('m-mush-rice', 'inv-soyasauce', 0.015);
+  recStmt.run('m-mush-rice', 'inv-oil', 0.025);
+  recStmt.run('m-mush-rice', 'inv-spices', 0.006);
+  recStmt.run('m-mush-rice', 'inv-salt', 0.005);
+
+  // Veg Fried Rice (7 ingredients)
+  recStmt.run('m-veg-rice', 'inv-rice', 0.25);
+  recStmt.run('m-veg-rice', 'inv-onion', 0.05);
+  recStmt.run('m-veg-rice', 'inv-capsicum', 0.04);
+  recStmt.run('m-veg-rice', 'inv-soyasauce', 0.015);
+  recStmt.run('m-veg-rice', 'inv-oil', 0.025);
+  recStmt.run('m-veg-rice', 'inv-spices', 0.006);
+  recStmt.run('m-veg-rice', 'inv-salt', 0.005);
+
   // Noodles & Shawarma
-  recStmt.run('m-chk-noodles', 'inv-chicken', 0.15); recStmt.run('m-chk-noodles', 'inv-noodles', 0.20); recStmt.run('m-chk-noodles', 'inv-oil', 0.02);
-  recStmt.run('m-egg-noodles', 'inv-egg', 2.0); recStmt.run('m-egg-noodles', 'inv-noodles', 0.20); recStmt.run('m-egg-noodles', 'inv-oil', 0.02);
-  recStmt.run('m-paneer-noodles', 'inv-paneer', 0.12); recStmt.run('m-paneer-noodles', 'inv-noodles', 0.20); recStmt.run('m-paneer-noodles', 'inv-oil', 0.02);
-  recStmt.run('m-gobi-noodles', 'inv-gobi', 0.15); recStmt.run('m-gobi-noodles', 'inv-noodles', 0.20); recStmt.run('m-gobi-noodles', 'inv-oil', 0.02);
-  recStmt.run('m-mush-noodles', 'inv-mushroom', 0.15); recStmt.run('m-mush-noodles', 'inv-noodles', 0.20); recStmt.run('m-mush-noodles', 'inv-oil', 0.02);
-  recStmt.run('m-veg-noodles', 'inv-noodles', 0.20); recStmt.run('m-veg-noodles', 'inv-oil', 0.02);
-  recStmt.run('m-chk-shawarma', 'inv-chicken', 0.15); recStmt.run('m-chk-shawarma', 'inv-rumali', 1.0); recStmt.run('m-chk-shawarma', 'inv-oil', 0.01);
-  recStmt.run('m-shawarma-plate', 'inv-chicken', 0.20); recStmt.run('m-shawarma-plate', 'inv-rumali', 2.0);
-  // Starters
-  recStmt.run('m-chk-65', 'inv-chicken', 0.25); recStmt.run('m-chk-65', 'inv-oil', 0.05); recStmt.run('m-chk-65', 'inv-spices', 0.02);
-  recStmt.run('m-chk-leg-65', 'inv-chicken', 0.28); recStmt.run('m-chk-leg-65', 'inv-oil', 0.05);
-  recStmt.run('m-chk-lollipop', 'inv-chicken', 0.25); recStmt.run('m-chk-lollipop', 'inv-oil', 0.05);
-  recStmt.run('m-cheese-lollipop', 'inv-chicken', 0.25); recStmt.run('m-cheese-lollipop', 'inv-oil', 0.05); recStmt.run('m-cheese-lollipop', 'inv-butter', 0.02);
-  recStmt.run('m-chilli-chk', 'inv-chicken', 0.25); recStmt.run('m-chilli-chk', 'inv-oil', 0.04);
-  recStmt.run('m-pepper-chk', 'inv-chicken', 0.25); recStmt.run('m-pepper-chk', 'inv-oil', 0.04); recStmt.run('m-pepper-chk', 'inv-spices', 0.02);
-  recStmt.run('m-dragon-chk', 'inv-chicken', 0.25); recStmt.run('m-dragon-chk', 'inv-oil', 0.05);
-  recStmt.run('m-ginger-garlic-chk', 'inv-chicken', 0.25); recStmt.run('m-ginger-garlic-chk', 'inv-oil', 0.04);
-  recStmt.run('m-gobi-manch', 'inv-gobi', 0.20); recStmt.run('m-gobi-manch', 'inv-oil', 0.04);
-  recStmt.run('m-paneer-manch', 'inv-paneer', 0.18); recStmt.run('m-paneer-manch', 'inv-oil', 0.04);
-  recStmt.run('m-mush-manch', 'inv-mushroom', 0.18); recStmt.run('m-mush-manch', 'inv-oil', 0.04);
-  recStmt.run('m-gobi-pepper', 'inv-gobi', 0.20); recStmt.run('m-gobi-pepper', 'inv-oil', 0.03); recStmt.run('m-gobi-pepper', 'inv-spices', 0.02);
-  recStmt.run('m-paneer-pepper', 'inv-paneer', 0.18); recStmt.run('m-paneer-pepper', 'inv-oil', 0.03); recStmt.run('m-paneer-pepper', 'inv-spices', 0.02);
-  recStmt.run('m-mush-pepper', 'inv-mushroom', 0.18); recStmt.run('m-mush-pepper', 'inv-oil', 0.03); recStmt.run('m-mush-pepper', 'inv-spices', 0.02);
-  // Gravy
-  recStmt.run('m-chettinadu-chk', 'inv-chicken', 0.25); recStmt.run('m-chettinadu-chk', 'inv-oil', 0.03); recStmt.run('m-chettinadu-chk', 'inv-spices', 0.03);
-  recStmt.run('m-butter-chk', 'inv-chicken', 0.25); recStmt.run('m-butter-chk', 'inv-butter', 0.04); recStmt.run('m-butter-chk', 'inv-oil', 0.02);
-  recStmt.run('m-mughal-chk', 'inv-chicken', 0.25); recStmt.run('m-mughal-chk', 'inv-butter', 0.03); recStmt.run('m-mughal-chk', 'inv-oil', 0.02);
-  recStmt.run('m-paneer-butter', 'inv-paneer', 0.18); recStmt.run('m-paneer-butter', 'inv-butter', 0.04);
-  recStmt.run('m-kadai-paneer', 'inv-paneer', 0.18); recStmt.run('m-kadai-paneer', 'inv-oil', 0.03); recStmt.run('m-kadai-paneer', 'inv-spices', 0.02);
+  // Chicken Noodles (8 ingredients)
+  recStmt.run('m-chk-noodles', 'inv-noodles', 0.20);
+  recStmt.run('m-chk-noodles', 'inv-chicken', 0.15);
+  recStmt.run('m-chk-noodles', 'inv-egg', 1.0);
+  recStmt.run('m-chk-noodles', 'inv-onion', 0.04);
+  recStmt.run('m-chk-noodles', 'inv-soyasauce', 0.02);
+  recStmt.run('m-chk-noodles', 'inv-oil', 0.03);
+  recStmt.run('m-chk-noodles', 'inv-spices', 0.006);
+  recStmt.run('m-chk-noodles', 'inv-salt', 0.005);
+
+  // Egg Noodles (7 ingredients)
+  recStmt.run('m-egg-noodles', 'inv-noodles', 0.20);
+  recStmt.run('m-egg-noodles', 'inv-egg', 2.0);
+  recStmt.run('m-egg-noodles', 'inv-onion', 0.04);
+  recStmt.run('m-egg-noodles', 'inv-soyasauce', 0.02);
+  recStmt.run('m-egg-noodles', 'inv-oil', 0.03);
+  recStmt.run('m-egg-noodles', 'inv-spices', 0.006);
+  recStmt.run('m-egg-noodles', 'inv-salt', 0.005);
+
+  // Paneer Noodles (8 ingredients)
+  recStmt.run('m-paneer-noodles', 'inv-noodles', 0.20);
+  recStmt.run('m-paneer-noodles', 'inv-paneer', 0.12);
+  recStmt.run('m-paneer-noodles', 'inv-onion', 0.04);
+  recStmt.run('m-paneer-noodles', 'inv-capsicum', 0.04);
+  recStmt.run('m-paneer-noodles', 'inv-soyasauce', 0.02);
+  recStmt.run('m-paneer-noodles', 'inv-oil', 0.025);
+  recStmt.run('m-paneer-noodles', 'inv-spices', 0.006);
+  recStmt.run('m-paneer-noodles', 'inv-salt', 0.005);
+
+  // Gobi Noodles (7 ingredients)
+  recStmt.run('m-gobi-noodles', 'inv-noodles', 0.20);
+  recStmt.run('m-gobi-noodles', 'inv-gobi', 0.15);
+  recStmt.run('m-gobi-noodles', 'inv-onion', 0.04);
+  recStmt.run('m-gobi-noodles', 'inv-soyasauce', 0.02);
+  recStmt.run('m-gobi-noodles', 'inv-oil', 0.025);
+  recStmt.run('m-gobi-noodles', 'inv-spices', 0.006);
+  recStmt.run('m-gobi-noodles', 'inv-salt', 0.005);
+
+  // Mushroom Noodles (7 ingredients)
+  recStmt.run('m-mush-noodles', 'inv-noodles', 0.20);
+  recStmt.run('m-mush-noodles', 'inv-mushroom', 0.15);
+  recStmt.run('m-mush-noodles', 'inv-onion', 0.04);
+  recStmt.run('m-mush-noodles', 'inv-soyasauce', 0.02);
+  recStmt.run('m-mush-noodles', 'inv-oil', 0.025);
+  recStmt.run('m-mush-noodles', 'inv-spices', 0.006);
+  recStmt.run('m-mush-noodles', 'inv-salt', 0.005);
+
+  // Veg Noodles (7 ingredients)
+  recStmt.run('m-veg-noodles', 'inv-noodles', 0.20);
+  recStmt.run('m-veg-noodles', 'inv-onion', 0.05);
+  recStmt.run('m-veg-noodles', 'inv-capsicum', 0.04);
+  recStmt.run('m-veg-noodles', 'inv-soyasauce', 0.02);
+  recStmt.run('m-veg-noodles', 'inv-oil', 0.025);
+  recStmt.run('m-veg-noodles', 'inv-spices', 0.006);
+  recStmt.run('m-veg-noodles', 'inv-salt', 0.005);
+
+  // Shawarma Roll (6 ingredients)
+  recStmt.run('m-chk-shawarma', 'inv-chicken', 0.18);
+  recStmt.run('m-chk-shawarma', 'inv-rumali', 1.0);
+  recStmt.run('m-chk-shawarma', 'inv-mayo', 0.04);
+  recStmt.run('m-chk-shawarma', 'inv-oil', 0.015);
+  recStmt.run('m-chk-shawarma', 'inv-spices', 0.006);
+  recStmt.run('m-chk-shawarma', 'inv-salt', 0.003);
+
+  // Shawarma Plate (6 ingredients)
+  recStmt.run('m-shawarma-plate', 'inv-chicken', 0.22);
+  recStmt.run('m-shawarma-plate', 'inv-rumali', 2.0);
+  recStmt.run('m-shawarma-plate', 'inv-mayo', 0.06);
+  recStmt.run('m-shawarma-plate', 'inv-oil', 0.02);
+  recStmt.run('m-shawarma-plate', 'inv-spices', 0.008);
+  recStmt.run('m-shawarma-plate', 'inv-salt', 0.004);
+
+  // Starters (Full commercial restaurant portions & seasonings)
+  // Chicken 65 (9 ingredients)
+  recStmt.run('m-chk-65', 'inv-chicken', 0.25);
+  recStmt.run('m-chk-65', 'inv-cornflour', 0.03);
+  recStmt.run('m-chk-65', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-chk-65', 'inv-curd', 0.03);
+  recStmt.run('m-chk-65', 'inv-red-chilli', 0.01);
+  recStmt.run('m-chk-65', 'inv-spices', 0.015);
+  recStmt.run('m-chk-65', 'inv-oil', 0.04);
+  recStmt.run('m-chk-65', 'inv-green-chilli', 0.008);
+  recStmt.run('m-chk-65', 'inv-salt', 0.006);
+
+  // Chicken Leg 65 (8 ingredients)
+  recStmt.run('m-chk-leg-65', 'inv-chicken', 0.28);
+  recStmt.run('m-chk-leg-65', 'inv-cornflour', 0.035);
+  recStmt.run('m-chk-leg-65', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-chk-leg-65', 'inv-curd', 0.03);
+  recStmt.run('m-chk-leg-65', 'inv-red-chilli', 0.012);
+  recStmt.run('m-chk-leg-65', 'inv-spices', 0.015);
+  recStmt.run('m-chk-leg-65', 'inv-oil', 0.045);
+  recStmt.run('m-chk-leg-65', 'inv-salt', 0.006);
+
+  // Chicken Lollipop (7 ingredients)
+  recStmt.run('m-chk-lollipop', 'inv-chicken', 0.25);
+  recStmt.run('m-chk-lollipop', 'inv-cornflour', 0.035);
+  recStmt.run('m-chk-lollipop', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-chk-lollipop', 'inv-soyasauce', 0.015);
+  recStmt.run('m-chk-lollipop', 'inv-red-chilli', 0.008);
+  recStmt.run('m-chk-lollipop', 'inv-oil', 0.04);
+  recStmt.run('m-chk-lollipop', 'inv-salt', 0.006);
+
+  // Cheese Chicken Lollipop (8 ingredients)
+  recStmt.run('m-cheese-lollipop', 'inv-chicken', 0.25);
+  recStmt.run('m-cheese-lollipop', 'inv-cornflour', 0.035);
+  recStmt.run('m-cheese-lollipop', 'inv-butter', 0.03);
+  recStmt.run('m-cheese-lollipop', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-cheese-lollipop', 'inv-soyasauce', 0.015);
+  recStmt.run('m-cheese-lollipop', 'inv-oil', 0.04);
+  recStmt.run('m-cheese-lollipop', 'inv-salt', 0.006);
+
+  // Chilli Chicken (9 ingredients)
+  recStmt.run('m-chilli-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-chilli-chk', 'inv-capsicum', 0.05);
+  recStmt.run('m-chilli-chk', 'inv-onion', 0.06);
+  recStmt.run('m-chilli-chk', 'inv-soyasauce', 0.02);
+  recStmt.run('m-chilli-chk', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-chilli-chk', 'inv-green-chilli', 0.01);
+  recStmt.run('m-chilli-chk', 'inv-cornflour', 0.025);
+  recStmt.run('m-chilli-chk', 'inv-oil', 0.035);
+  recStmt.run('m-chilli-chk', 'inv-salt', 0.005);
+
+  // Pepper Chicken (7 ingredients)
+  recStmt.run('m-pepper-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-pepper-chk', 'inv-onion', 0.08);
+  recStmt.run('m-pepper-chk', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-pepper-chk', 'inv-spices', 0.025);
+  recStmt.run('m-pepper-chk', 'inv-oil', 0.03);
+  recStmt.run('m-pepper-chk', 'inv-salt', 0.006);
+  recStmt.run('m-pepper-chk', 'inv-coriander', 0.01);
+
+  // Dragon Chicken (8 ingredients)
+  recStmt.run('m-dragon-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-dragon-chk', 'inv-capsicum', 0.05);
+  recStmt.run('m-dragon-chk', 'inv-onion', 0.05);
+  recStmt.run('m-dragon-chk', 'inv-soyasauce', 0.02);
+  recStmt.run('m-dragon-chk', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-dragon-chk', 'inv-red-chilli', 0.01);
+  recStmt.run('m-dragon-chk', 'inv-cornflour', 0.03);
+  recStmt.run('m-dragon-chk', 'inv-oil', 0.04);
+  recStmt.run('m-dragon-chk', 'inv-salt', 0.005);
+
+  // Ginger Garlic Chicken (8 ingredients)
+  recStmt.run('m-ginger-garlic-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-ginger-garlic-chk', 'inv-ginger-garlic', 0.035);
+  recStmt.run('m-ginger-garlic-chk', 'inv-onion', 0.06);
+  recStmt.run('m-ginger-garlic-chk', 'inv-soyasauce', 0.015);
+  recStmt.run('m-ginger-garlic-chk', 'inv-cornflour', 0.02);
+  recStmt.run('m-ginger-garlic-chk', 'inv-oil', 0.035);
+  recStmt.run('m-ginger-garlic-chk', 'inv-salt', 0.005);
+  recStmt.run('m-ginger-garlic-chk', 'inv-coriander', 0.01);
+
+  // Veg Starters
+  // Gobi Manchurian (9 ingredients)
+  recStmt.run('m-gobi-manch', 'inv-gobi', 0.22);
+  recStmt.run('m-gobi-manch', 'inv-cornflour', 0.035);
+  recStmt.run('m-gobi-manch', 'inv-4', 0.02);
+  recStmt.run('m-gobi-manch', 'inv-onion', 0.05);
+  recStmt.run('m-gobi-manch', 'inv-capsicum', 0.04);
+  recStmt.run('m-gobi-manch', 'inv-soyasauce', 0.015);
+  recStmt.run('m-gobi-manch', 'inv-ginger-garlic', 0.015);
+  recStmt.run('m-gobi-manch', 'inv-oil', 0.035);
+  recStmt.run('m-gobi-manch', 'inv-salt', 0.005);
+
+  // Paneer Manchurian (8 ingredients)
+  recStmt.run('m-paneer-manch', 'inv-paneer', 0.18);
+  recStmt.run('m-paneer-manch', 'inv-cornflour', 0.03);
+  recStmt.run('m-paneer-manch', 'inv-onion', 0.05);
+  recStmt.run('m-paneer-manch', 'inv-capsicum', 0.04);
+  recStmt.run('m-paneer-manch', 'inv-soyasauce', 0.015);
+  recStmt.run('m-paneer-manch', 'inv-ginger-garlic', 0.015);
+  recStmt.run('m-paneer-manch', 'inv-oil', 0.035);
+  recStmt.run('m-paneer-manch', 'inv-salt', 0.005);
+
+  // Mushroom Manchurian (8 ingredients)
+  recStmt.run('m-mush-manch', 'inv-mushroom', 0.18);
+  recStmt.run('m-mush-manch', 'inv-cornflour', 0.03);
+  recStmt.run('m-mush-manch', 'inv-onion', 0.05);
+  recStmt.run('m-mush-manch', 'inv-capsicum', 0.04);
+  recStmt.run('m-mush-manch', 'inv-soyasauce', 0.015);
+  recStmt.run('m-mush-manch', 'inv-ginger-garlic', 0.015);
+  recStmt.run('m-mush-manch', 'inv-oil', 0.035);
+  recStmt.run('m-mush-manch', 'inv-salt', 0.005);
+
+  // Gobi Pepper Fry (7 ingredients)
+  recStmt.run('m-gobi-pepper', 'inv-gobi', 0.22);
+  recStmt.run('m-gobi-pepper', 'inv-onion', 0.05);
+  recStmt.run('m-gobi-pepper', 'inv-spices', 0.02);
+  recStmt.run('m-gobi-pepper', 'inv-ginger-garlic', 0.015);
+  recStmt.run('m-gobi-pepper', 'inv-cornflour', 0.02);
+  recStmt.run('m-gobi-pepper', 'inv-oil', 0.03);
+  recStmt.run('m-gobi-pepper', 'inv-salt', 0.005);
+
+  // Paneer Pepper Fry (6 ingredients)
+  recStmt.run('m-paneer-pepper', 'inv-paneer', 0.18);
+  recStmt.run('m-paneer-pepper', 'inv-onion', 0.05);
+  recStmt.run('m-paneer-pepper', 'inv-spices', 0.02);
+  recStmt.run('m-paneer-pepper', 'inv-ginger-garlic', 0.015);
+  recStmt.run('m-paneer-pepper', 'inv-oil', 0.03);
+  recStmt.run('m-paneer-pepper', 'inv-salt', 0.005);
+
+  // Mushroom Pepper Fry (6 ingredients)
+  recStmt.run('m-mush-pepper', 'inv-mushroom', 0.18);
+  recStmt.run('m-mush-pepper', 'inv-onion', 0.05);
+  recStmt.run('m-mush-pepper', 'inv-spices', 0.02);
+  recStmt.run('m-mush-pepper', 'inv-ginger-garlic', 0.015);
+  recStmt.run('m-mush-pepper', 'inv-oil', 0.03);
+  recStmt.run('m-mush-pepper', 'inv-salt', 0.005);
+
+  // Gravies & Curries (FULL COMMERCIAL RESTAURANT RECIPES)
+  // 1. Butter Chicken (14 Complete Ingredients)
+  recStmt.run('m-butter-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-butter-chk', 'inv-butter', 0.04);
+  recStmt.run('m-butter-chk', 'inv-cream', 0.03);
+  recStmt.run('m-butter-chk', 'inv-tomato', 0.15);
+  recStmt.run('m-butter-chk', 'inv-onion', 0.08);
+  recStmt.run('m-butter-chk', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-butter-chk', 'inv-cashew', 0.02);
+  recStmt.run('m-butter-chk', 'inv-kasurimethi', 0.005);
+  recStmt.run('m-butter-chk', 'inv-red-chilli', 0.01);
+  recStmt.run('m-butter-chk', 'inv-garam-masala', 0.005);
+  recStmt.run('m-butter-chk', 'inv-curd', 0.04);
+  recStmt.run('m-butter-chk', 'inv-oil', 0.015);
+  recStmt.run('m-butter-chk', 'inv-salt', 0.005);
+  recStmt.run('m-butter-chk', 'inv-coriander', 0.01);
+
+  // 2. Paneer Butter Masala (13 Complete Ingredients)
+  recStmt.run('m-paneer-butter', 'inv-paneer', 0.20);
+  recStmt.run('m-paneer-butter', 'inv-butter', 0.04);
+  recStmt.run('m-paneer-butter', 'inv-cream', 0.03);
+  recStmt.run('m-paneer-butter', 'inv-tomato', 0.15);
+  recStmt.run('m-paneer-butter', 'inv-onion', 0.08);
+  recStmt.run('m-paneer-butter', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-paneer-butter', 'inv-cashew', 0.02);
+  recStmt.run('m-paneer-butter', 'inv-kasurimethi', 0.005);
+  recStmt.run('m-paneer-butter', 'inv-red-chilli', 0.008);
+  recStmt.run('m-paneer-butter', 'inv-garam-masala', 0.005);
+  recStmt.run('m-paneer-butter', 'inv-oil', 0.015);
+  recStmt.run('m-paneer-butter', 'inv-salt', 0.005);
+  recStmt.run('m-paneer-butter', 'inv-coriander', 0.01);
+
+  // 3. Chettinadu Pepper Chicken (10 Complete Ingredients)
+  recStmt.run('m-chettinadu-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-chettinadu-chk', 'inv-onion', 0.10);
+  recStmt.run('m-chettinadu-chk', 'inv-tomato', 0.08);
+  recStmt.run('m-chettinadu-chk', 'inv-ginger-garlic', 0.025);
+  recStmt.run('m-chettinadu-chk', 'inv-spices', 0.02);
+  recStmt.run('m-chettinadu-chk', 'inv-red-chilli', 0.008);
+  recStmt.run('m-chettinadu-chk', 'inv-turmeric', 0.004);
+  recStmt.run('m-chettinadu-chk', 'inv-oil', 0.03);
+  recStmt.run('m-chettinadu-chk', 'inv-salt', 0.005);
+  recStmt.run('m-chettinadu-chk', 'inv-coriander', 0.015);
+
+  // 4. Mughal Chicken (11 Complete Ingredients)
+  recStmt.run('m-mughal-chk', 'inv-chicken', 0.25);
+  recStmt.run('m-mughal-chk', 'inv-butter', 0.03);
+  recStmt.run('m-mughal-chk', 'inv-cream', 0.025);
+  recStmt.run('m-mughal-chk', 'inv-cashew', 0.025);
+  recStmt.run('m-mughal-chk', 'inv-curd', 0.05);
+  recStmt.run('m-mughal-chk', 'inv-onion', 0.08);
+  recStmt.run('m-mughal-chk', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-mughal-chk', 'inv-garam-masala', 0.005);
+  recStmt.run('m-mughal-chk', 'inv-oil', 0.02);
+  recStmt.run('m-mughal-chk', 'inv-salt', 0.005);
+  recStmt.run('m-mughal-chk', 'inv-coriander', 0.01);
+
+  // 5. Kadai Paneer (10 Complete Ingredients)
+  recStmt.run('m-kadai-paneer', 'inv-paneer', 0.20);
+  recStmt.run('m-kadai-paneer', 'inv-capsicum', 0.08);
+  recStmt.run('m-kadai-paneer', 'inv-onion', 0.08);
+  recStmt.run('m-kadai-paneer', 'inv-tomato', 0.12);
+  recStmt.run('m-kadai-paneer', 'inv-ginger-garlic', 0.02);
+  recStmt.run('m-kadai-paneer', 'inv-garam-masala', 0.008);
+  recStmt.run('m-kadai-paneer', 'inv-red-chilli', 0.008);
+  recStmt.run('m-kadai-paneer', 'inv-oil', 0.025);
+  recStmt.run('m-kadai-paneer', 'inv-salt', 0.005);
+  recStmt.run('m-kadai-paneer', 'inv-coriander', 0.01);
 
   // 6. SLA and Hotel Settings
   const setStmt = db.prepare('INSERT OR REPLACE INTO restaurant_settings (key, value) VALUES (?, ?)');
@@ -1063,6 +1433,25 @@ export function getInventoryStatus() {
     }));
 
   return { items, purchaseSuggestions };
+}
+
+// Auto-register or match missing inventory item
+export function ensureInventoryItem(name, unit = 'kg', category = 'Grocery', costPerUnit = 50, initialStock = 20) {
+  if (!name || !name.trim()) return null;
+  const trimmed = name.trim();
+  let item = db.prepare('SELECT * FROM inventory_items WHERE LOWER(name) = LOWER(?)').get(trimmed);
+  if (item) return item;
+
+  const slug = 'inv-' + trimmed.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 20);
+  const existingId = db.prepare('SELECT * FROM inventory_items WHERE id = ?').get(slug);
+  const finalId = existingId ? `${slug}-${Date.now().toString().slice(-4)}` : slug;
+
+  db.prepare(`
+    INSERT INTO inventory_items (id, name, category, unit, current_stock, min_threshold, cost_per_unit)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(finalId, trimmed, category, unit, initialStock, 5, costPerUnit);
+
+  return db.prepare('SELECT * FROM inventory_items WHERE id = ?').get(finalId);
 }
 
 // PURCHASES TRACKER (Adds Stock to Inventory)

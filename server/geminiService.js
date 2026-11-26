@@ -4,112 +4,474 @@ import https from 'node:https';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Pre-compiled Culinary Ontology for Instant Intelligent Fallback / Offline Support
+// Pre-compiled Culinary Ontology for Instant Intelligent Fallback / Offline Support (Full Commercial Restaurant Ingredients)
 const CULINARY_RECIPE_KNOWLEDGE_BASE = {
-  'paneer butter masala': [
-    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.20, unit: 'kg' },
-    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.04, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' },
-    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.08, unit: 'ltr' }
-  ],
-  'paneer tikka': [
-    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.22, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
-    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' }
-  ],
   'butter chicken': [
     { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
     { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.04, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' },
-    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.08, unit: 'ltr' }
+    { name: 'Fresh Dairy Cooking Cream', inventory_id: 'inv-cream', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Broken Cashew Nuts / Kaju Paste', inventory_id: 'inv-cashew', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Kasuri Methi (Dried Fenugreek)', inventory_id: 'inv-kasurimethi', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Authentic Garam Masala Blend', inventory_id: 'inv-garam-masala', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
   ],
-  'chicken 65': [
-    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.05, unit: 'ltr' },
-    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.03, unit: 'kg' }
+  'paneer butter masala': [
+    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Fresh Dairy Cooking Cream', inventory_id: 'inv-cream', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Broken Cashew Nuts / Kaju Paste', inventory_id: 'inv-cashew', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Kasuri Methi (Dried Fenugreek)', inventory_id: 'inv-kasurimethi', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Authentic Garam Masala Blend', inventory_id: 'inv-garam-masala', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
   ],
-  'chicken tikka': [
+  'kadai paneer': [
+    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.12, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Authentic Garam Masala Blend', inventory_id: 'inv-garam-masala', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
+  ],
+  'chettinadu pepper chicken': [
     { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.10, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Pure Turmeric Powder (Haldi)', inventory_id: 'inv-turmeric', quantity_required: 0.004, unit: 'kg' },
     { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
-    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' }
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.015, unit: 'kg' }
+  ],
+  'chettinadu': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.10, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.015, unit: 'kg' }
+  ],
+  'mughal chicken': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Fresh Dairy Cooking Cream', inventory_id: 'inv-cream', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Broken Cashew Nuts / Kaju Paste', inventory_id: 'inv-cashew', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Authentic Garam Masala Blend', inventory_id: 'inv-garam-masala', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
   ],
   'chicken biryani': [
     { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
     { name: 'Premium Basmati Rice', inventory_id: 'inv-basmati', quantity_required: 0.20, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
-    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.025, unit: 'kg' }
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.10, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Spicy Green Chillies', inventory_id: 'inv-green-chilli', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.015, unit: 'kg' }
   ],
-  'mutton biryani': [
+  'biryani': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
     { name: 'Premium Basmati Rice', inventory_id: 'inv-basmati', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.10, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.015, unit: 'kg' }
+  ],
+  '65 biryani': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Premium Basmati Rice', inventory_id: 'inv-basmati', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
     { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
-    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.03, unit: 'kg' }
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.015, unit: 'kg' }
   ],
-  'veg meals': [
-    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.35, unit: 'kg' },
+  'kushka': [
+    { name: 'Premium Basmati Rice', inventory_id: 'inv-basmati', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.015, unit: 'kg' }
+  ],
+  'chicken 65': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
+    { name: 'Fresh Spicy Green Chillies', inventory_id: 'inv-green-chilli', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.006, unit: 'kg' }
+  ],
+  'chicken leg 65': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.28, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.035, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.012, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.045, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.006, unit: 'kg' }
+  ],
+  'chicken lollipop': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.035, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.006, unit: 'kg' }
+  ],
+  'cheese chicken lollipop': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.035, unit: 'kg' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.006, unit: 'kg' }
+  ],
+  'chilli chicken': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Spicy Green Chillies', inventory_id: 'inv-green-chilli', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.025, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.035, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'pepper chicken': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.025, unit: 'kg' },
     { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
-    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.05, unit: 'ltr' }
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
   ],
-  'meals': [
-    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.35, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' }
+  'dragon chicken': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Kashmiri Red Chilli Powder', inventory_id: 'inv-red-chilli', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
-  'parotta': [
-    { name: 'Refined Wheat Flour (Maida)', inventory_id: 'inv-4', quantity_required: 0.20, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' }
+  'ginger garlic chicken': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.25, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.035, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.035, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
   ],
-  'dosa': [
-    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.15, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' }
+  'gobi manchurian': [
+    { name: 'Fresh Cauliflower (Gobi)', inventory_id: 'inv-gobi', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.035, unit: 'kg' },
+    { name: 'Refined Wheat Flour (Maida)', inventory_id: 'inv-4', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.035, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
-  'shawarma': [
-    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.18, unit: 'kg' },
-    { name: 'Shawarma Rumali Kuboos', inventory_id: 'inv-rumali', quantity_required: 1.0, unit: 'pcs' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' }
+  'paneer manchurian': [
+    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.18, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.035, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'mushroom manchurian': [
+    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.18, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.035, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'gobi pepper fry': [
+    { name: 'Fresh Cauliflower (Gobi)', inventory_id: 'inv-gobi', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Corn Flour / Crispy Starch', inventory_id: 'inv-cornflour', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'paneer pepper fry': [
+    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.18, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'mushroom pepper fry': [
+    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.18, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.02, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'chicken fried rice': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Farm Fresh Eggs', inventory_id: 'inv-egg', quantity_required: 1.0, unit: 'pcs' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
   'egg fried rice': [
     { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.25, unit: 'kg' },
     { name: 'Farm Fresh Eggs', inventory_id: 'inv-egg', quantity_required: 2.0, unit: 'pcs' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' }
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
-  'chicken fried rice': [
+  'paneer fried rice': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.12, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.03, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'gobi fried rice': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Fresh Cauliflower (Gobi)', inventory_id: 'inv-gobi', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'mushroom fried rice': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'veg fried rice': [
     { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.25, unit: 'kg' },
-    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.15, unit: 'kg' },
-    { name: 'Farm Fresh Eggs', inventory_id: 'inv-egg', quantity_required: 1.0, unit: 'pcs' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' }
-  ],
-  'veg hakka noodles': [
-    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
-    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.06, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' }
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
   'chicken noodles': [
     { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
     { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.15, unit: 'kg' },
     { name: 'Farm Fresh Eggs', inventory_id: 'inv-egg', quantity_required: 1.0, unit: 'pcs' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' }
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
-  'mushroom': [
-    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.20, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' }
+  'egg noodles': [
+    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Farm Fresh Eggs', inventory_id: 'inv-egg', quantity_required: 2.0, unit: 'pcs' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.03, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
   ],
-  'gobi': [
-    { name: 'Fresh Cauliflower (Gobi)', inventory_id: 'inv-gobi', quantity_required: 0.25, unit: 'kg' },
-    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' }
+  'paneer noodles': [
+    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Malai Paneer', inventory_id: 'inv-paneer', quantity_required: 0.12, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'gobi noodles': [
+    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Cauliflower (Gobi)', inventory_id: 'inv-gobi', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'mushroom noodles': [
+    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'veg noodles': [
+    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'veg hakka noodles': [
+    { name: 'Fresh Hakka Noodles', inventory_id: 'inv-noodles', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Fresh Button Mushrooms', inventory_id: 'inv-mushroom', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.05, unit: 'kg' },
+    { name: 'Fresh Green Capsicum / Bell Pepper', inventory_id: 'inv-capsicum', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Dark Soya Sauce & Vinegar', inventory_id: 'inv-soyasauce', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.005, unit: 'kg' }
+  ],
+  'chicken shawarma': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.18, unit: 'kg' },
+    { name: 'Shawarma Rumali Kuboos', inventory_id: 'inv-rumali', quantity_required: 1.0, unit: 'pcs' },
+    { name: 'Garlic Mayonnaise Sauce', inventory_id: 'inv-mayo', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.003, unit: 'kg' }
+  ],
+  'shawarma': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.18, unit: 'kg' },
+    { name: 'Shawarma Rumali Kuboos', inventory_id: 'inv-rumali', quantity_required: 1.0, unit: 'pcs' },
+    { name: 'Garlic Mayonnaise Sauce', inventory_id: 'inv-mayo', quantity_required: 0.04, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.015, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.006, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.003, unit: 'kg' }
+  ],
+  'shawarma plate': [
+    { name: 'Fresh Tender Chicken', inventory_id: 'inv-chicken', quantity_required: 0.22, unit: 'kg' },
+    { name: 'Shawarma Rumali Kuboos', inventory_id: 'inv-rumali', quantity_required: 2.0, unit: 'pcs' },
+    { name: 'Garlic Mayonnaise Sauce', inventory_id: 'inv-mayo', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Pepper & Biryani Spices', inventory_id: 'inv-spices', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.004, unit: 'kg' }
+  ],
+  'meals': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.35, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.08, unit: 'ltr' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pure Turmeric Powder (Haldi)', inventory_id: 'inv-turmeric', quantity_required: 0.004, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
+  ],
+  'veg meals': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.35, unit: 'kg' },
+    { name: 'Fresh Ripe Tomatoes & Puree', inventory_id: 'inv-tomato', quantity_required: 0.08, unit: 'kg' },
+    { name: 'Fresh Red Onions', inventory_id: 'inv-onion', quantity_required: 0.06, unit: 'kg' },
+    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.08, unit: 'ltr' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.025, unit: 'ltr' },
+    { name: 'Pure Turmeric Powder (Haldi)', inventory_id: 'inv-turmeric', quantity_required: 0.004, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.008, unit: 'kg' },
+    { name: 'Fresh Coriander & Mint Leaves', inventory_id: 'inv-coriander', quantity_required: 0.01, unit: 'kg' }
+  ],
+  'parotta': [
+    { name: 'Refined Wheat Flour (Maida)', inventory_id: 'inv-4', quantity_required: 0.20, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.04, unit: 'ltr' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.05, unit: 'ltr' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.004, unit: 'kg' }
+  ],
+  'dosa': [
+    { name: 'Ponni / Fried Rice Grain', inventory_id: 'inv-rice', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Refined Cooking Oil', inventory_id: 'inv-oil', quantity_required: 0.02, unit: 'ltr' },
+    { name: 'Pure Cooking Butter', inventory_id: 'inv-butter', quantity_required: 0.01, unit: 'kg' },
+    { name: 'Iodized Cooking Salt', inventory_id: 'inv-salt', quantity_required: 0.004, unit: 'kg' }
   ],
   'tea': [
     { name: 'Premium Tea Leaves', inventory_id: 'inv-9', quantity_required: 0.015, unit: 'kg' },
-    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.12, unit: 'ltr' }
+    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.12, unit: 'ltr' },
+    { name: 'Fine Crystal White Sugar', inventory_id: 'inv-sugar', quantity_required: 0.015, unit: 'kg' },
+    { name: 'Ginger Garlic Paste', inventory_id: 'inv-ginger-garlic', quantity_required: 0.003, unit: 'kg' }
   ],
   'coffee': [
     { name: 'Premium Tea Leaves', inventory_id: 'inv-9', quantity_required: 0.015, unit: 'kg' },
-    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.14, unit: 'ltr' }
+    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.14, unit: 'ltr' },
+    { name: 'Fine Crystal White Sugar', inventory_id: 'inv-sugar', quantity_required: 0.015, unit: 'kg' }
   ],
   'orange juice': [
-    { name: 'Fresh Oranges', inventory_id: 'inv-7', quantity_required: 0.35, unit: 'kg' }
+    { name: 'Fresh Oranges', inventory_id: 'inv-7', quantity_required: 0.35, unit: 'kg' },
+    { name: 'Fine Crystal White Sugar', inventory_id: 'inv-sugar', quantity_required: 0.02, unit: 'kg' }
   ],
   'mango lassi': [
     { name: 'Alphonso Mango Pulp', inventory_id: 'inv-8', quantity_required: 0.10, unit: 'kg' },
-    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.18, unit: 'ltr' }
+    { name: 'Fresh Thick Curd / Dahi', inventory_id: 'inv-curd', quantity_required: 0.15, unit: 'kg' },
+    { name: 'Fresh Cow Milk', inventory_id: 'inv-6', quantity_required: 0.05, unit: 'ltr' },
+    { name: 'Fine Crystal White Sugar', inventory_id: 'inv-sugar', quantity_required: 0.02, unit: 'kg' }
   ]
 };
 
@@ -127,23 +489,44 @@ export function matchInventoryItem(nameOrKey, inventoryItems = []) {
 
   // 3. Keyword matching for common culinary items
   const keywords = [
-    { words: ['chicken', 'poultry'], match: ['chicken'] },
+    { words: ['tomato', 'puree', 'tamatar'], match: ['tomato'] },
+    { words: ['onion', 'pyaz', 'shallot'], match: ['onion'] },
+    { words: ['ginger garlic', 'ginger-garlic', 'ginger_garlic', 'paste'], match: ['ginger-garlic', 'paste'] },
+    { words: ['cream', 'malai'], match: ['cream'] },
+    { words: ['cashew', 'kaju'], match: ['cashew'] },
+    { words: ['kasuri', 'methi', 'fenugreek'], match: ['kasuri', 'methi'] },
+    { words: ['garam masala', 'garam-masala'], match: ['garam'] },
+    { words: ['green chilli', 'green-chilli', 'hari mirch'], match: ['green-chilli'] },
+    { words: ['red chilli', 'chilli powder', 'kashmiri chilli', 'chilli', 'mirch'], match: ['red-chilli', 'chilli'] },
+    { words: ['curd', 'dahi', 'yogurt'], match: ['curd', 'dahi'] },
+    { words: ['salt', 'namak'], match: ['salt'] },
+    { words: ['coriander', 'mint', 'cilantro', 'pudina', 'dhania'], match: ['coriander', 'mint'] },
+    { words: ['corn flour', 'cornflour', 'starch'], match: ['cornflour'] },
+    { words: ['soya', 'soy sauce', 'vinegar', 'sauce'], match: ['soyasauce', 'soya'] },
+    { words: ['turmeric', 'haldi'], match: ['turmeric'] },
+    { words: ['cumin', 'jeera'], match: ['cumin'] },
+    { words: ['capsicum', 'bell pepper', 'shimla'], match: ['capsicum'] },
+    { words: ['mayo', 'mayonnaise'], match: ['mayo'] },
+    { words: ['sugar', 'cheeni'], match: ['sugar'] },
+    { words: ['lemon', 'lime', 'nimbu'], match: ['lemon'] },
+    { words: ['chicken', 'poultry', 'murgh'], match: ['chicken'] },
     { words: ['basmati', 'biryani rice'], match: ['basmati'] },
     { words: ['rice', 'grain', 'ponni'], match: ['rice', 'ponni'] },
     { words: ['paneer', 'cottage cheese'], match: ['paneer'] },
-    { words: ['butter', 'ghee'], match: ['butter'] },
-    { words: ['oil', 'sunflower'], match: ['oil'] },
-    { words: ['egg', 'eggs'], match: ['egg'] },
+    { words: ['butter', 'makhan', 'makkhan'], match: ['butter'] },
+    { words: ['oil', 'sunflower', 'refined oil'], match: ['oil'] },
+    { words: ['egg', 'eggs', 'anda'], match: ['egg'] },
     { words: ['noodle', 'noodles', 'chowmein'], match: ['noodle'] },
     { words: ['maida', 'flour', 'wheat', 'atta'], match: ['maida', 'wheat'] },
-    { words: ['milk', 'dairy', 'curd', 'yogurt'], match: ['milk'] },
+    { words: ['milk', 'doodh'], match: ['milk', 'inv-6'] },
     { words: ['mushroom'], match: ['mushroom'] },
     { words: ['cauliflower', 'gobi'], match: ['cauliflower', 'gobi'] },
     { words: ['shawarma', 'kuboos', 'rumali'], match: ['rumali', 'kuboos'] },
     { words: ['spice', 'masala', 'pepper'], match: ['spice', 'pepper'] },
     { words: ['orange', 'juice'], match: ['orange'] },
     { words: ['mango', 'lassi'], match: ['mango'] },
-    { words: ['tea', 'coffee'], match: ['tea'] }
+    { words: ['tea', 'chai'], match: ['tea'] },
+    { words: ['coffee'], match: ['coffee'] }
   ];
 
   for (const k of keywords) {
@@ -215,20 +598,28 @@ async function callGeminiAPI(apiKey, prompt, inlineImage = null) {
 /**
  * Suggest ingredients and BOM portions for a given dish name using Gemini or Culinary Ontology
  */
-export async function suggestRecipeIngredients(dishName, isVeg = true, category = 'mains', inventoryItems = [], apiKey = null) {
+export async function suggestRecipeIngredients(dishName, isVeg = true, category = 'mains', inventoryItems = [], apiKey = null, ensureItemFn = null) {
   const norm = dishName.toLowerCase().trim();
-  const invItems = Array.isArray(inventoryItems) ? inventoryItems : (inventoryItems?.items || []);
+  let invItems = Array.isArray(inventoryItems) ? [...inventoryItems] : [...(inventoryItems?.items || [])];
 
   // Try real Gemini API if key is present
   if (apiKey) {
     try {
       const invListStr = invItems.map(i => `${i.id}: ${i.name} (${i.unit})`).join(', ');
-      const prompt = `You are a professional restaurant executive chef and inventory management expert.
-Dish Name: "${dishName}" (Diet: ${isVeg ? 'Vegetarian' : 'Non-Vegetarian'}, Category: ${category}).
-Available Restaurant Inventory Items: [${invListStr}].
+      const prompt = `You are an executive master chef and restaurant inventory director.
+Dish: "${dishName}" (Diet: ${isVeg ? 'Vegetarian' : 'Non-Vegetarian'}, Category: ${category}).
+Available Store Inventory Items: [${invListStr}].
 
-Analyze this dish and identify the exact raw ingredients required to prepare 1 single standard restaurant portion.
-Match the ingredients against the Available Restaurant Inventory Items where possible. If an ingredient is not in the list, recommend it with a standard unit (kg, ltr, pcs, pack).
+Generate the FULL, COMPLETE authentic commercial restaurant recipe with ALL ingredients needed to prepare 1 single restaurant portion.
+Every restaurant dish requires a full list of ingredients:
+1. Primary protein / vegetable / grain base (e.g., tender chicken, paneer, basmati rice, noodles, mushrooms, eggs).
+2. Fresh aromatics & produce (ripe tomatoes/puree, red onions, ginger garlic paste, green chillies, coriander/mint).
+3. Dairy, enrichment & cooking fat (pure butter, fresh cream, curd/dahi, cashew paste, refined cooking oil).
+4. Spices & masalas (kashmiri red chilli powder, garam masala, kasuri methi, turmeric, cumin, pepper).
+5. Essential pantry seasonings & sauces (iodized salt, corn flour, dark soya sauce).
+
+Provide a comprehensive list of 8 to 14 realistic commercial restaurant ingredients with precise portion sizes for 1 serving.
+Match each ingredient against the Available Store Inventory Items if possible (use its inventory_id).
 Output strictly valid JSON with this format:
 {
   "dish": "${dishName}",
@@ -251,12 +642,16 @@ Return only JSON, no markdown formatting or extra text.`;
           source: 'Gemini 1.5 Flash AI',
           dish: dishName,
           ingredients: result.ingredients.map(ing => {
-            const inv = matchInventoryItem(ing.inventory_id || ing.name, invItems);
+            let inv = matchInventoryItem(ing.inventory_id || ing.name, invItems);
+            if (!inv && typeof ensureItemFn === 'function') {
+              inv = ensureItemFn(ing.name, ing.unit || 'kg');
+              if (inv) invItems.push(inv);
+            }
             return {
-              inventory_id: inv ? inv.id : (invItems[0]?.id || 'inv-chicken'),
+              inventory_id: inv ? inv.id : (ing.inventory_id || 'inv-chicken'),
               name: inv ? inv.name : (ing.name || 'Store Item'),
               inventory_name: inv ? inv.name : (ing.name || 'Store Item'),
-              quantity_required: parseFloat(ing.quantity_required) || 0.15,
+              quantity_required: parseFloat(ing.quantity_required) || 0.05,
               unit: inv ? inv.unit : (ing.unit || 'kg'),
               current_stock: inv ? inv.current_stock : 0,
               cost_per_unit: inv ? inv.cost_per_unit : 0
@@ -276,12 +671,16 @@ Return only JSON, no markdown formatting or extra text.`;
         source: 'ChefPulse Culinary Engine (Offline AI)',
         dish: dishName,
         ingredients: ingredients.map(ing => {
-          const inv = matchInventoryItem(ing.inventory_id || ing.name, invItems);
+          let inv = matchInventoryItem(ing.inventory_id || ing.name, invItems);
+          if (!inv && typeof ensureItemFn === 'function') {
+            inv = ensureItemFn(ing.name, ing.unit || 'kg');
+            if (inv) invItems.push(inv);
+          }
           return {
             inventory_id: inv ? inv.id : ing.inventory_id,
             name: inv ? inv.name : ing.name,
             inventory_name: inv ? inv.name : ing.name,
-            quantity_required: parseFloat(ing.quantity_required) || 0.15,
+            quantity_required: parseFloat(ing.quantity_required) || 0.05,
             unit: inv ? inv.unit : ing.unit,
             current_stock: inv ? inv.current_stock : 0,
             cost_per_unit: inv ? inv.cost_per_unit : 0
@@ -291,18 +690,42 @@ Return only JSON, no markdown formatting or extra text.`;
     }
   }
 
-  // Smart Heuristic Fallback by Dish Type / Category
+  // Smart Heuristic Fallback by Dish Type / Category (Comprehensive 8-ingredient base)
   const defaultList = [];
   if (isVeg) {
-    const paneer = matchInventoryItem('paneer', invItems) || invItems[0];
-    const oil = matchInventoryItem('oil', invItems) || invItems[1];
+    const paneer = matchInventoryItem('paneer', invItems);
+    const onion = matchInventoryItem('onion', invItems);
+    const tomato = matchInventoryItem('tomato', invItems);
+    const gg = matchInventoryItem('ginger garlic', invItems);
+    const butter = matchInventoryItem('butter', invItems);
+    const oil = matchInventoryItem('oil', invItems);
+    const spices = matchInventoryItem('garam masala', invItems) || matchInventoryItem('spice', invItems);
+    const salt = matchInventoryItem('salt', invItems);
     if (paneer) defaultList.push({ inventory_id: paneer.id, name: paneer.name, inventory_name: paneer.name, quantity_required: 0.18, unit: paneer.unit, current_stock: paneer.current_stock, cost_per_unit: paneer.cost_per_unit });
-    if (oil) defaultList.push({ inventory_id: oil.id, name: oil.name, inventory_name: oil.name, quantity_required: 0.03, unit: oil.unit, current_stock: oil.current_stock, cost_per_unit: oil.cost_per_unit });
+    if (tomato) defaultList.push({ inventory_id: tomato.id, name: tomato.name, inventory_name: tomato.name, quantity_required: 0.12, unit: tomato.unit, current_stock: tomato.current_stock, cost_per_unit: tomato.cost_per_unit });
+    if (onion) defaultList.push({ inventory_id: onion.id, name: onion.name, inventory_name: onion.name, quantity_required: 0.08, unit: onion.unit, current_stock: onion.current_stock, cost_per_unit: onion.cost_per_unit });
+    if (gg) defaultList.push({ inventory_id: gg.id, name: gg.name, inventory_name: gg.name, quantity_required: 0.02, unit: gg.unit, current_stock: gg.current_stock, cost_per_unit: gg.cost_per_unit });
+    if (butter) defaultList.push({ inventory_id: butter.id, name: butter.name, inventory_name: butter.name, quantity_required: 0.03, unit: butter.unit, current_stock: butter.current_stock, cost_per_unit: butter.cost_per_unit });
+    if (oil) defaultList.push({ inventory_id: oil.id, name: oil.name, inventory_name: oil.name, quantity_required: 0.02, unit: oil.unit, current_stock: oil.current_stock, cost_per_unit: oil.cost_per_unit });
+    if (spices) defaultList.push({ inventory_id: spices.id, name: spices.name, inventory_name: spices.name, quantity_required: 0.008, unit: spices.unit, current_stock: spices.current_stock, cost_per_unit: spices.cost_per_unit });
+    if (salt) defaultList.push({ inventory_id: salt.id, name: salt.name, inventory_name: salt.name, quantity_required: 0.005, unit: salt.unit, current_stock: salt.current_stock, cost_per_unit: salt.cost_per_unit });
   } else {
-    const chicken = matchInventoryItem('chicken', invItems) || invItems[0];
-    const oil = matchInventoryItem('oil', invItems) || invItems[1];
+    const chicken = matchInventoryItem('chicken', invItems);
+    const onion = matchInventoryItem('onion', invItems);
+    const tomato = matchInventoryItem('tomato', invItems);
+    const gg = matchInventoryItem('ginger garlic', invItems);
+    const butter = matchInventoryItem('butter', invItems);
+    const oil = matchInventoryItem('oil', invItems);
+    const spices = matchInventoryItem('garam masala', invItems) || matchInventoryItem('spice', invItems);
+    const salt = matchInventoryItem('salt', invItems);
     if (chicken) defaultList.push({ inventory_id: chicken.id, name: chicken.name, inventory_name: chicken.name, quantity_required: 0.25, unit: chicken.unit, current_stock: chicken.current_stock, cost_per_unit: chicken.cost_per_unit });
-    if (oil) defaultList.push({ inventory_id: oil.id, name: oil.name, inventory_name: oil.name, quantity_required: 0.04, unit: oil.unit, current_stock: oil.current_stock, cost_per_unit: oil.cost_per_unit });
+    if (tomato) defaultList.push({ inventory_id: tomato.id, name: tomato.name, inventory_name: tomato.name, quantity_required: 0.12, unit: tomato.unit, current_stock: tomato.current_stock, cost_per_unit: tomato.cost_per_unit });
+    if (onion) defaultList.push({ inventory_id: onion.id, name: onion.name, inventory_name: onion.name, quantity_required: 0.08, unit: onion.unit, current_stock: onion.current_stock, cost_per_unit: onion.cost_per_unit });
+    if (gg) defaultList.push({ inventory_id: gg.id, name: gg.name, inventory_name: gg.name, quantity_required: 0.02, unit: gg.unit, current_stock: gg.current_stock, cost_per_unit: gg.cost_per_unit });
+    if (butter) defaultList.push({ inventory_id: butter.id, name: butter.name, inventory_name: butter.name, quantity_required: 0.03, unit: butter.unit, current_stock: butter.current_stock, cost_per_unit: butter.cost_per_unit });
+    if (oil) defaultList.push({ inventory_id: oil.id, name: oil.name, inventory_name: oil.name, quantity_required: 0.02, unit: oil.unit, current_stock: oil.current_stock, cost_per_unit: oil.cost_per_unit });
+    if (spices) defaultList.push({ inventory_id: spices.id, name: spices.name, inventory_name: spices.name, quantity_required: 0.008, unit: spices.unit, current_stock: spices.current_stock, cost_per_unit: spices.cost_per_unit });
+    if (salt) defaultList.push({ inventory_id: salt.id, name: salt.name, inventory_name: salt.name, quantity_required: 0.005, unit: salt.unit, current_stock: salt.current_stock, cost_per_unit: salt.cost_per_unit });
   }
 
   return {

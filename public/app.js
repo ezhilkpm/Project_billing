@@ -5132,9 +5132,20 @@ function addRecipeIngredientRow(data = null) {
     ? inventoryData.items
     : [];
 
-  let selectedId = data?.inventory_id || (storeItems[0]?.id || '');
-  let selectedItem = storeItems.find(i => i.id === selectedId) || storeItems[0] || { unit: 'kg', current_stock: 0, cost_per_unit: 0 };
-  const initialQty = data ? (data.quantity_required !== undefined ? data.quantity_required : 0.1) : 0.1;
+  let selectedId = data?.inventory_id || '';
+  let selectedItem = storeItems.find(i => i.id === selectedId);
+  if (!selectedItem && data) {
+    const q = String(data.name || data.inventory_name || '').toLowerCase().trim();
+    if (q) {
+      selectedItem = storeItems.find(i => i.name.toLowerCase() === q || i.name.toLowerCase().includes(q) || q.includes(i.name.toLowerCase()));
+      if (selectedItem) selectedId = selectedItem.id;
+    }
+  }
+  if (!selectedItem) {
+    selectedItem = storeItems[0] || { unit: 'kg', current_stock: 0, cost_per_unit: 0 };
+    selectedId = selectedItem.id || '';
+  }
+  const initialQty = data ? (data.quantity_required !== undefined ? data.quantity_required : 0.05) : 0.05;
 
   const invOptions = storeItems.map(i => {
     const isSel = i.id === selectedId;
@@ -5285,6 +5296,10 @@ async function generateRecipeWithGemini() {
     const data = await res.json();
     if (!res.ok || !data.ingredients) {
       throw new Error(data.error || 'Failed to suggest recipe ingredients');
+    }
+
+    if (data.updatedInventory && Array.isArray(data.updatedInventory.items) && data.updatedInventory.items.length > 0) {
+      inventoryData = data.updatedInventory;
     }
 
     const container = document.getElementById('recipe-ingredients-list');
