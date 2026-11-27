@@ -213,6 +213,34 @@ export function rateLimiter({ windowMs = 60000, max = 20, message = 'Too many re
   };
 }
 
+// Explicit Root Route Handler (Guarantees index.html always renders even with query parameters or proxy routing)
+app.get(['/', '/index.html'], (req, res) => {
+  const candidates = [
+    path.join(publicDir, 'index.html'),
+    path.join(__dirname, '..', 'public', 'index.html'),
+    path.join(process.cwd(), 'public', 'index.html'),
+    path.join(process.cwd(), 'index.html'),
+    path.join(__dirname, '..', 'index.html')
+  ];
+  const targetFile = candidates.find(f => {
+    try { return fs.existsSync(f); } catch (e) { return false; }
+  }) || candidates[0];
+
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(targetFile, (err) => {
+    if (err && !res.headersSent) {
+      try {
+        const content = fs.readFileSync(targetFile, 'utf8');
+        res.type('html').send(content);
+      } catch (readErr) {
+        res.status(500).send('ChefPulse POS Error: Unable to read index.html');
+      }
+    }
+  });
+});
+
 // Serve Static Frontend Assets with zero-cache headers (prevents stale client UI)
 app.use(express.static(publicDir, {
   etag: false,
