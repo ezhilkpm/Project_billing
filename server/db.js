@@ -1534,52 +1534,62 @@ export function authenticateUser(username, pinCode) {
   const cleanUser = String(username || '').trim().toLowerCase();
   const cleanPin = String(pinCode || '').trim();
 
-  // Match username, role or id, and verify pin (or demo pin 1234)
+  if (!cleanUser || !cleanPin) {
+    throw new Error('Username and PIN Code are required');
+  }
+
+  // 1. Check users table
   const user = db.prepare(`
-    SELECT id, username, full_name, role, assigned_kitchen_id, status 
+    SELECT id, username, pin_code, full_name, role, assigned_kitchen_id, status 
     FROM users 
     WHERE (
       LOWER(username) = ? 
       OR LOWER(id) = ? 
       OR LOWER(role) = ?
-      OR ( ? = '' AND LOWER(username) = 'admin' )
-    ) AND (
-      pin_code = ? 
-      OR pin_code = '1234' 
-      OR ? = '1234' 
-      OR ? = ''
     ) AND status = 'ACTIVE'
-  `).get(cleanUser, cleanUser, cleanUser, cleanUser, cleanPin, cleanPin, cleanPin);
+  `).get(cleanUser, cleanUser, cleanUser);
 
-  if (!user) {
-    // If not found in users table, also check staff table
-    const staff = db.prepare(`
-      SELECT id, name as full_name, role, 'ACTIVE' as status 
-      FROM staff 
-      WHERE (LOWER(role) = ? OR LOWER(name) = ? OR LOWER(id) = ?) AND status = 'ACTIVE'
-    `).get(cleanUser, cleanUser, cleanUser);
-    if (staff) {
-      return {
-        id: staff.id,
-        username: staff.full_name.toLowerCase().replace(/\s+/g, '_'),
-        full_name: staff.full_name,
-        role: staff.role,
-        assigned_kitchen_id: null,
-        status: 'ACTIVE'
-      };
+  if (user) {
+    if (user.pin_code !== cleanPin) {
+      throw new Error('Invalid Username or PIN Code');
     }
-    throw new Error('Invalid Username or PIN Code');
+    const { pin_code, ...safeUser } = user;
+    return safeUser;
   }
-  return user;
+
+  // 2. Check staff table (with staff PIN validation)
+  const staff = db.prepare(`
+    SELECT id, name as full_name, role, pin_code, status 
+    FROM staff 
+    WHERE (LOWER(role) = ? OR LOWER(name) = ? OR LOWER(id) = ?) AND status = 'ACTIVE'
+  `).get(cleanUser, cleanUser, cleanUser);
+
+  if (staff) {
+    const expectedPin = staff.pin_code || '1234';
+    if (cleanPin !== expectedPin) {
+      throw new Error('Invalid Username or PIN Code');
+    }
+    return {
+      id: staff.id,
+      username: staff.full_name.toLowerCase().replace(/\s+/g, '_'),
+      full_name: staff.full_name,
+      role: staff.role,
+      assigned_kitchen_id: null,
+      status: 'ACTIVE'
+    };
+  }
+
+  throw new Error('Invalid Username or PIN Code');
 }
 
 export function verifyStaffPin(identifier, pin) {
   const cleanId = String(identifier || '').trim().toLowerCase();
   const cleanPin = String(pin || '').trim();
+  if (!cleanId || !cleanPin) return null;
 
-  // Check users table (matches username, role, id, or partial name, with personal PIN or universal PIN 1234)
+  // 1. Check users table
   const user = db.prepare(`
-    SELECT id, username, full_name, role, assigned_kitchen_id, status 
+    SELECT id, username, pin_code, full_name, role, assigned_kitchen_id, status 
     FROM users 
     WHERE (
       LOWER(username) = ? 
@@ -1587,22 +1597,20 @@ export function verifyStaffPin(identifier, pin) {
       OR LOWER(id) = ? 
       OR LOWER(id) = 'u-' || ?
       OR ? LIKE '%' || LOWER(username) || '%'
-    ) AND (
-      pin_code = ? 
-      OR pin_code = '1234' 
-      OR ? = '1234' 
-      OR ? = '1111' 
-      OR ? = '2222' 
-      OR ? = '3333' 
-      OR ? = '4444' 
-      OR ? = '5555'
     ) AND status = 'ACTIVE'
-  `).get(cleanId, cleanId, cleanId, cleanId, cleanId, cleanPin, cleanPin, cleanPin, cleanPin, cleanPin, cleanPin, cleanPin);
-  if (user) return user;
+  `).get(cleanId, cleanId, cleanId, cleanId, cleanId);
 
-  // Check staff table
+  if (user) {
+    if (user.pin_code === cleanPin) {
+      const { pin_code, ...safeUser } = user;
+      return safeUser;
+    }
+    return null;
+  }
+
+  // 2. Check staff table
   const staffMember = db.prepare(`
-    SELECT id, name as full_name, role, 'ACTIVE' as status
+    SELECT id, name as full_name, role, pin_code, status
     FROM staff
     WHERE (
       LOWER(role) = ? 
@@ -1611,16 +1619,21 @@ export function verifyStaffPin(identifier, pin) {
       OR ? LIKE '%' || LOWER(role) || '%'
     ) AND status = 'ACTIVE'
   `).get(cleanId, cleanId, cleanId, cleanId);
+
   if (staffMember) {
-    return {
-      id: staffMember.id,
-      username: staffMember.full_name.toLowerCase().replace(/\s+/g, '_'),
-      full_name: staffMember.full_name,
-      role: staffMember.role,
-      assigned_kitchen_id: null,
-      status: 'ACTIVE'
-    };
+    const expectedPin = staffMember.pin_code || '1234';
+    if (cleanPin === expectedPin) {
+      return {
+        id: staffMember.id,
+        username: staffMember.full_name.toLowerCase().replace(/\s+/g, '_'),
+        full_name: staffMember.full_name,
+        role: staffMember.role,
+        assigned_kitchen_id: null,
+        status: 'ACTIVE'
+      };
+    }
   }
+
   return null;
 }
 
@@ -3463,7 +3476,7 @@ export function getMobileBootstrapData(terminalId = '', requestedName = '') {
   const kitchenStations = getKitchenStations();
   const customCharges = getCustomBillCharges();
   const activeStaff = db.prepare(`
-    SELECT id, username, pin_code, full_name, role 
+    SELECT id, username, full_name, role 
     FROM users 
     WHERE status = 'ACTIVE'
   `).all();

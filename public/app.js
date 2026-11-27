@@ -50,6 +50,42 @@ function getEffectiveWsUrl() {
   return 'ws://localhost:4000';
 }
 
+// XSS Sanitizer: Escape HTML characters in user-controlled strings
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+window.escapeHtml = escapeHtml;
+
+// Auth Token Interceptor: Automatically attach Bearer token to all /api/ requests
+const _nativeFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+  const token = sessionStorage.getItem('chefpulse_token');
+  if (token && typeof url === 'string' && url.includes('/api/')) {
+    options = options || {};
+    options.headers = options.headers || {};
+    if (options.headers instanceof Headers) {
+      if (!options.headers.has('Authorization')) {
+        options.headers.set('Authorization', `Bearer ${token}`);
+      }
+    } else if (Array.isArray(options.headers)) {
+      if (!options.headers.some(h => h[0]?.toLowerCase() === 'authorization')) {
+        options.headers.push(['Authorization', `Bearer ${token}`]);
+      }
+    } else {
+      if (!options.headers['Authorization'] && !options.headers['authorization']) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+  }
+  return _nativeFetch.call(this, url, options);
+};
+
 let SERVER_BASE = getEffectiveServerBase();
 let WS_URL = getEffectiveWsUrl();
 
@@ -557,36 +593,29 @@ function showLoginScreen() {
 
 async function handleAdminLogin(event) {
   if (event) event.preventDefault();
-  const username = (document.getElementById('admin-login-username')?.value || '').trim();
+  const username = (document.getElementById('admin-login-username')?.value || '').trim() || 'admin';
   const pin = (document.getElementById('admin-login-pin')?.value || '').trim();
 
-  // 1. Direct match for default credentials
-  if ((username.toLowerCase() === 'admin' || username === '') && (pin === '1234' || pin === '')) {
-    quickAdminLogin();
+  if (!pin) {
+    showNotification('Please enter your 4-digit PIN Code (Default Admin PIN: 1234)', true);
     return;
   }
 
-  // 2. Query backend authentication endpoint
+  // Query backend authentication endpoint
   try {
     const res = await fetch(`${SERVER_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, pinCode: pin })
     });
-    if (res.ok) {
-      const user = await res.json();
-      loginUser(user);
+    const data = await res.json();
+    if (res.ok && data.id) {
+      loginUser(data);
       return;
     }
+    showNotification(data.error || 'Invalid Username or PIN Code', true);
   } catch (err) {
-    console.warn('Backend login check failed:', err);
-  }
-
-  // 3. Fallback
-  if (username.toLowerCase() === 'admin' && pin === '1234') {
-    quickAdminLogin();
-  } else {
-    showNotification('Invalid Username or PIN (Default Admin: admin / 1234)', true);
+    showNotification('Login request failed: ' + err.message, true);
   }
 }
 
@@ -598,7 +627,7 @@ function quickAdminLogin() {
     role: 'ADMIN',
     assigned_kitchen_id: null
   };
-  loginUser(user);
+  promptStaffQuickAuth(user);
 }
 
 function quickStaffLogin(role, username, fullName, kitchenId = null) {
@@ -615,6 +644,9 @@ function quickStaffLogin(role, username, fullName, kitchenId = null) {
 function loginUser(user) {
   currentUser = user;
   sessionStorage.setItem('chefpulse_user', JSON.stringify(user));
+  if (user && user.token) {
+    sessionStorage.setItem('chefpulse_token', user.token);
+  }
   
   const loginScreen = document.getElementById('login-screen');
   const appScreen = document.getElementById('main-app-screen');
@@ -652,25 +684,24 @@ window.executeFullAuthLogin = async function(username, pin) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, pinCode: pin })
     });
-    if (res.ok) {
-      const user = await res.json();
-      loginUser(user);
+    const data = await res.json();
+    if (res.ok && data.id) {
+      loginUser(data);
       return;
     }
-  } catch (err) {}
-  loginUser({
-    id: 'u-' + (username || 'admin'),
-    username: username || 'admin',
-    full_name: 'Restaurant Administrator',
-    role: 'ADMIN',
-    assigned_kitchen_id: null
-  });
+    showNotification(data.error || 'Invalid Username or PIN', true);
+  } catch (err) {
+    showNotification('Authentication error: ' + err.message, true);
+  }
 };
 
 function logout() {
+  currentUser = null;
+  sessionStorage.removeItem('chefpulse_user');
+  sessionStorage.removeItem('chefpulse_token');
   playChime(350, 0.1);
   showLoginScreen();
-  showNotification('Logged out. Please choose login role.');
+  showNotification('Logged out successfully.');
 }
 
 function applyUserPermissions(user) {
@@ -8289,23 +8320,14 @@ async function verifyEnteredStaffPin() {
     if (res.ok && data.success) {
       playChime(880, 0.15, 'triangle');
       closeStaffAuthModal();
-      loginUser(targetUser);
+      loginUser({ ...targetUser, ...(data.staff || {}), token: data.token });
       return;
     }
-    throw new Error(data.error || 'Incorrect PIN');
+    throw new Error(data.error || 'Incorrect PIN Code');
   } catch (err) {
-    // Fallback match for offline demo PIN (default 1234, role PINs, or staff stored pin)
-    const validStaffPins = ['1234', '1111', '2222', '3333', '4444', '5555', targetUser.pin_code];
-    if (validStaffPins.includes(pin)) {
-      playChime(880, 0.15, 'triangle');
-      closeStaffAuthModal();
-      loginUser(targetUser);
-      return;
-    }
-
     playChime(220, 0.25, 'sawtooth');
     if (errMsg) {
-      errMsg.innerText = '❌ Incorrect PIN (Default PIN: 1234)';
+      errMsg.innerText = `❌ ${err.message || 'Incorrect PIN Code'}`;
       errMsg.classList.remove('hidden');
     }
     currentStaffEnteredPin = '';
@@ -8328,17 +8350,16 @@ async function authenticateStaffBiometric() {
     if (res.ok && data.success) {
       playChime(980, 0.2, 'sine');
       closeStaffAuthModal();
-      loginUser(targetUser);
+      loginUser({ ...targetUser, ...(data.staff || {}), token: data.token });
       showNotification(`👆 Fingerprint biometric verified for ${targetUser.full_name}!`);
       return;
     }
     throw new Error(data.error || 'Biometric authentication failed');
   } catch (err) {
-    // Offline / fallback biometric always succeeds for quick demo access
-    playChime(980, 0.2, 'sine');
-    closeStaffAuthModal();
-    loginUser(targetUser);
-    showNotification(`👆 Fingerprint biometric verified for ${targetUser.full_name}!`);
+    if (errMsg) {
+      errMsg.innerText = `❌ ${err.message || 'Biometric verification failed'}`;
+      errMsg.classList.remove('hidden');
+    }
   }
 }
 

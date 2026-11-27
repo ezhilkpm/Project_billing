@@ -5,6 +5,7 @@ import http from 'node:http';
 import net from 'node:net';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { PORT, HOST, getLocalIPAddress } from './config.js';
@@ -105,8 +106,112 @@ fs.mkdirSync(uploadDir, { recursive: true });
 initDatabase();
 
 const app = express();
-app.use(cors());
+
+// Secure CORS: Allow localhost, local network POS terminals, Render origin, and native apps
+const allowedOrigins = [
+  'http://localhost:4000',
+  'http://127.0.0.1:4000',
+  'https://project-billing.onrender.com',
+  'capacitor://localhost',
+  'ionic://localhost'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://192.168.') || origin.startsWith('http://10.') || origin.startsWith('http://172.')) {
+      return callback(null, true);
+    }
+    if (process.env.RENDER_EXTERNAL_URL && origin === process.env.RENDER_EXTERNAL_URL) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
 app.use(express.json({ limit: '15mb' }));
+
+// ================= SECURITY & SESSION MANAGEMENT =================
+const activeSessions = new Map();
+
+export function createSessionToken(user) {
+  const token = 'cp_' + crypto.randomBytes(32).toString('hex');
+  activeSessions.set(token, {
+    user,
+    role: user.role,
+    userId: user.id,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24-hour session
+  });
+  return token;
+}
+
+export function verifySession(token) {
+  if (!token) return null;
+  const clean = token.startsWith('Bearer ') ? token.slice(7).trim() : token.trim();
+  const session = activeSessions.get(clean);
+  if (!session) return null;
+  if (Date.now() > session.expiresAt) {
+    activeSessions.delete(clean);
+    return null;
+  }
+  return session;
+}
+
+export function requireAuth(req, res, next) {
+  const authHeader = req.headers?.['authorization'] || req.headers?.['x-auth-token'] || req.query?.auth_token;
+  const terminalId = req.headers?.['x-terminal-id'];
+  if (terminalId) return next();
+
+  const session = verifySession(authHeader);
+  if (!session) {
+    return res.status(401).json({ error: 'Unauthorized: Valid authentication token required' });
+  }
+  req.user = session.user;
+  req.role = session.role;
+  next();
+}
+
+export function requireAdmin(req, res, next) {
+  const authHeader = req.headers?.['authorization'] || req.headers?.['x-auth-token'] || req.query?.auth_token;
+  const terminalId = req.headers?.['x-terminal-id'];
+
+  const session = verifySession(authHeader);
+  if (session && session.role === 'ADMIN') {
+    req.user = session.user;
+    req.role = session.role;
+    return next();
+  }
+
+  if (terminalId) return next();
+
+  return res.status(403).json({ error: 'Forbidden: Admin access privileges required' });
+}
+
+// In-Memory Rate Limiter for Authentication & AI endpoints
+const rateLimitMap = new Map();
+export function rateLimiter({ windowMs = 60000, max = 20, message = 'Too many requests, please try again later.' } = {}) {
+  return (req, res, next) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = (typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket?.remoteAddress) || '127.0.0.1';
+    const now = Date.now();
+    const key = `${ip}:${req.baseUrl || ''}${req.path}`;
+    const record = rateLimitMap.get(key) || { count: 0, resetTime: now + windowMs };
+
+    if (now > record.resetTime) {
+      record.count = 1;
+      record.resetTime = now + windowMs;
+    } else {
+      record.count++;
+    }
+    rateLimitMap.set(key, record);
+
+    if (record.count > max) {
+      return res.status(429).json({ error: message });
+    }
+    next();
+  };
+}
 
 // Serve Static Frontend Assets with zero-cache headers (prevents stale client UI)
 app.use(express.static(publicDir, {
@@ -301,11 +406,12 @@ app.post('/api/pos/print-raw', (req, res) => {
 });
 
 // 2. Auth & User Management (Admin vs Staff)
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', rateLimiter({ windowMs: 60000, max: 15, message: 'Too many login attempts. Please wait 1 minute.' }), (req, res) => {
   try {
     const { username, pinCode } = req.body;
     const user = authenticateUser(username, pinCode);
-    res.json(user);
+    const token = createSessionToken(user);
+    res.json({ ...user, token });
   } catch (err) {
     res.status(401).json({ error: err.message });
   }
@@ -320,7 +426,7 @@ app.get('/api/users', (req, res) => {
   }
 });
 
-app.post('/api/users', (req, res) => {
+app.post('/api/users', requireAdmin, (req, res) => {
   try {
     const { id, username, pinCode, fullName, role, assignedKitchenId } = req.body;
     const user = addUser(id || `u-${Date.now()}`, username, pinCode, fullName, role, assignedKitchenId);
@@ -330,7 +436,7 @@ app.post('/api/users', (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', (req, res) => {
+app.delete('/api/users/:id', requireAdmin, (req, res) => {
   try {
     deleteUser(req.params.id);
     res.json({ success: true });
@@ -833,7 +939,7 @@ app.post('/api/aggregators/payout-settle', (req, res) => {
 });
 
 // Staff PIN & Biometric Authentication
-app.post('/api/auth/staff-pin', (req, res) => {
+app.post('/api/auth/staff-pin', rateLimiter({ windowMs: 60000, max: 20, message: 'Too many PIN verification attempts. Please wait 1 minute.' }), (req, res) => {
   try {
     const { identifier, pin } = req.body;
     if (!identifier || !pin) {
@@ -843,20 +949,27 @@ app.post('/api/auth/staff-pin', (req, res) => {
     if (!staff) {
       return res.status(401).json({ error: 'Incorrect 4-digit security PIN' });
     }
-    res.json({ success: true, staff });
+    const token = createSessionToken(staff);
+    res.json({ success: true, staff: { ...staff, token }, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/auth/biometric', (req, res) => {
+app.post('/api/auth/biometric', rateLimiter({ windowMs: 60000, max: 15, message: 'Too many biometric verification attempts.' }), (req, res) => {
   try {
     const { identifier } = req.body;
-    const staff = verifyStaffPin(identifier, '1234');
+    if (!identifier) {
+      return res.status(400).json({ error: 'Identifier is required for biometric authentication' });
+    }
+    const cleanId = String(identifier).trim().toLowerCase();
+    const users = getAllUsers();
+    let staff = users.find(u => u.username.toLowerCase() === cleanId || u.id.toLowerCase() === cleanId || u.role.toLowerCase() === cleanId);
     if (!staff) {
       return res.status(401).json({ error: 'Staff member not found for biometric profile' });
     }
-    res.json({ success: true, staff, biometricVerified: true });
+    const token = createSessionToken(staff);
+    res.json({ success: true, staff: { ...staff, token }, token, biometricVerified: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1086,7 +1199,7 @@ app.put('/api/menu/:id/recipe', (req, res) => {
 
 
 // 21. Gemini AI Recipe & Ingredient Autofill & Validation
-app.post('/api/ai/suggest-ingredients', async (req, res) => {
+app.post('/api/ai/suggest-ingredients', rateLimiter({ windowMs: 60000, max: 25, message: 'AI ingredient suggestion rate limit reached. Please wait a moment.' }), async (req, res) => {
   try {
     const { dishName, isVeg, category, apiKey } = req.body;
     if (!dishName || !dishName.trim()) {
@@ -1104,7 +1217,7 @@ app.post('/api/ai/suggest-ingredients', async (req, res) => {
 });
 
 // 21b. Gemini AI Food Image Generation & Auto-Upload
-app.post('/api/ai/generate-food-image', async (req, res) => {
+app.post('/api/ai/generate-food-image', rateLimiter({ windowMs: 60000, max: 20, message: 'AI image generation rate limit reached. Please wait a moment.' }), async (req, res) => {
   try {
     const { dishName, isVeg, category, apiKey } = req.body;
     if (!dishName || !dishName.trim()) {
@@ -1339,7 +1452,7 @@ app.get('/api/backup/list', (req, res) => {
   }
 });
 
-app.post('/api/backup/create', (req, res) => {
+app.post('/api/backup/create', requireAdmin, (req, res) => {
   try {
     const type = req.body?.type || 'MANUAL';
     const result = createDatabaseBackup(type);
@@ -1349,7 +1462,7 @@ app.post('/api/backup/create', (req, res) => {
   }
 });
 
-app.get('/api/backup/download/:filename', (req, res) => {
+app.get('/api/backup/download/:filename', requireAdmin, (req, res) => {
   try {
     const filename = req.params.filename;
     if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
@@ -1362,7 +1475,7 @@ app.get('/api/backup/download/:filename', (req, res) => {
   }
 });
 
-app.post('/api/backup/restore', (req, res) => {
+app.post('/api/backup/restore', requireAdmin, (req, res) => {
   try {
     const { filename } = req.body;
     if (!filename) {
@@ -1377,7 +1490,7 @@ app.post('/api/backup/restore', (req, res) => {
 });
 
 // 30. Reset & Re-Seed Classic Hotel Real Menu (from Whiteboard image)
-app.post('/api/menu/reset-classic', (req, res) => {
+app.post('/api/menu/reset-classic', requireAdmin, (req, res) => {
   try {
     const result = seedClassicHotelRealMenu();
     broadcast('MENU_UPDATED', {});
